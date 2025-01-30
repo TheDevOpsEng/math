@@ -123,48 +123,44 @@
         let badgeEarned = false;
         let funMessages = ["Keep going! You're a math star! ⭐", "Great job! You’re improving! 🚀", "Amazing effort! Keep it up! 🎯"];
 
-        function playSound(type) {
-            let sound = new Audio(type === "correct" ? "correct.mp3" : "wrong.mp3");
-            sound.play();
-        }
+        function generateQuestions() {
+            let container = document.getElementById("questions-container");
+            container.innerHTML = "";
+            questions = [];
+            timerStarted = false;
 
-        function updateBadges() {
-            if (streak >= 5 && !badgeEarned) {
-                document.getElementById("badges").textContent = "🏅 Achievement Unlocked: Math Master!";
-                badgeEarned = true;
-            }
-        }
-
-        function updateProgress() {
-            document.getElementById("progress-bar").style.width = (practiceCount * 20) + "%";
-        }
-
-        function checkAnswers() {
-            let allCorrect = true;
             for (let i = 1; i <= 10; i++) {
-                let userAnswer = document.getElementById(`answer-${i}`).value;
-                let correctAnswer = questions[i - 1].answer;
-                if (parseInt(userAnswer) !== correctAnswer) {
-                    allCorrect = false;
-                    playSound("wrong");
-                } else {
-                    playSound("correct");
-                }
+                let num1 = Math.floor(Math.random() * (level + 5)) + 1;
+                let num2 = Math.floor(Math.random() * (level + 5)) + 1;
+                let questionText = `${num1} + ${num2} =`;
+                let answer = num1 + num2;
+
+                questions.push({ questionText, answer });
+
+                container.innerHTML += `
+                    <div class="question-item">
+                        ${questionText}
+                        <input type="number" id="answer-${i}" oninput="startTimer()" inputmode="numeric" pattern="[0-9]*">
+                        <span id="result-${i}" class="result"></span>
+                    </div>
+                `;
             }
-            if (allCorrect) {
-                streak++;
-                practiceCount++;
-                updateProgress();
-                updateBadges();
-                document.getElementById("random-message").textContent = funMessages[Math.floor(Math.random() * funMessages.length)];
-            } else {
-                streak = 0;
+        }
+
+        function startTimer() {
+            if (!timerStarted) {
+                timerStarted = true;
+                startTime = Date.now();
+                timerInterval = setInterval(() => {
+                    let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                    document.getElementById("timer").textContent = `⏳ Time: ${elapsedTime}s`;
+                }, 1000);
             }
-            document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
         }
 
         function nextQuestions() {
             generateQuestions();
+            document.getElementById("next-btn").disabled = false;
         }
 
         function startChallengeMode() {
@@ -176,4 +172,3 @@
     </script>
 </body>
 </html>
- 
