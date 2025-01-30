@@ -110,12 +110,14 @@
         let questions = [];
         let startTime;
         let timerInterval;
+        let timerStarted = false;
 
         function generateQuestions() {
             let container = document.getElementById("questions-container");
             container.innerHTML = ""; // Clear previous questions
             questions = []; // Reset questions array
-            
+            timerStarted = false; // Reset timer flag
+
             for (let i = 1; i <= 10; i++) {
                 let num1 = level;
                 let num2 = step;
@@ -127,7 +129,7 @@
                 container.innerHTML += `
                     <div class="question-item">
                         ${questionText}
-                        <input type="number" id="answer-${i}">
+                        <input type="number" id="answer-${i}" oninput="startTimer()" inputmode="numeric" pattern="[0-9]*">
                         <span class="result" id="result-${i}"></span>
                     </div>
                 `;
@@ -139,19 +141,20 @@
                 }
             }
 
-            // Start the timer
-            startTimer();
+            // Reset Timer Display
+            document.getElementById("timer").textContent = "⏳ Time: 0s";
+            clearInterval(timerInterval); // Ensure any existing timer is cleared
         }
 
         function startTimer() {
-            clearInterval(timerInterval); // Clear any existing timer
-            startTime = Date.now();
-            document.getElementById("timer").textContent = "⏳ Time: 0s";
-
-            timerInterval = setInterval(() => {
-                let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-                document.getElementById("timer").textContent = `⏳ Time: ${elapsedTime}s`;
-            }, 1000);
+            if (!timerStarted) {
+                timerStarted = true;
+                startTime = Date.now();
+                timerInterval = setInterval(() => {
+                    let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                    document.getElementById("timer").textContent = `⏳ Time: ${elapsedTime}s`;
+                }, 1000);
+            }
         }
 
         function stopTimer() {
