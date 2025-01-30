@@ -1,99 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fun Math Practice</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            text-align: center;
-            background: linear-gradient(to right, #f8f9fa, #e9ecef);
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            background: white;
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        h1 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .timer, .streak, .progress-bar-container, .leaderboard, .badges, .random-message {
-            font-size: 18px;
-            font-weight: bold;
-            color: #007bff;
-            margin-bottom: 10px;
-        }
-
-        .question-item {
-            font-size: 22px;
-            font-weight: bold;
-            margin: 15px 0;
-        }
-
-        input {
-            font-size: 18px;
-            padding: 8px;
-            width: 80px;
-            text-align: center;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        input:focus {
-            border-color: #007bff;
-        }
-
-        button {
-            font-size: 18px;
-            padding: 10px 20px;
-            border: none;
-            background: #007bff;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 10px;
-            transition: all 0.3s ease;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            background-color: #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .progress-bar {
-            height: 20px;
-            width: 0%;
-            background-color: #4caf50;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .leaderboard, .badges, .random-message {
-            font-size: 16px;
-            margin-top: 15px;
-            color: #555;
-        }
-    </style>
-</head>
+    </head>
 <body>
     <div class="container">
         <h1>🎯 Fun Math Practice 🏆</h1>
@@ -104,7 +12,7 @@
         </div>
         <div id="questions-container"></div>
         <button onclick="checkAnswers()">Check Answers</button>
-        <button onclick="nextQuestions()" id="next-btn">Next 10 Questions</button>
+        <button onclick="nextQuestions()">Next 10 Questions</button>
         <button onclick="startChallengeMode()">⚡ Speed Round</button>
         <div class="badges" id="badges">🏅 Achievements: None</div>
         <div class="random-message" id="random-message"></div>
@@ -114,23 +22,26 @@
     <script>
         let level = 1;
         let streak = 0;
-        let practiceCount = 0;
         let questions = [];
         let startTime;
         let timerInterval;
         let timerStarted = false;
+        let correctAnswers = 0; // Track correct answers for progress bar
 
         function generateQuestions() {
-            let container = document.getElementById("questions-container");
+            const container = document.getElementById("questions-container");
             container.innerHTML = "";
             questions = [];
             timerStarted = false;
+            clearInterval(timerInterval);
+            document.getElementById("timer").textContent = `⏳ Time: 0s`;
+            correctAnswers = 0; // Reset correct answer count
 
             for (let i = 1; i <= 10; i++) {
-                let num1 = level;
-                let num2 = Math.floor(Math.random() * 10) + 1;
-                let questionText = `${num1} + ${num2} =`;
-                let answer = num1 + num2;
+                const num1 = level;
+                const num2 = Math.floor(Math.random() * 10) + 1;
+                const questionText = `${num1} + ${num2} =`;
+                const answer = num1 + num2;
 
                 questions.push({ questionText, answer });
 
@@ -145,30 +56,54 @@
         }
 
         function startTimer() {
-            if (!timerStarted) {
+            if (!timerStarted && document.querySelector('#questions-container input')) { // Check if input exists
                 timerStarted = true;
                 startTime = Date.now();
                 timerInterval = setInterval(() => {
-                    let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                    const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
                     document.getElementById("timer").textContent = `⏳ Time: ${elapsedTime}s`;
                 }, 1000);
             }
         }
 
         function checkAnswers() {
+            let allCorrect = true;
+            correctAnswers = 0; // Reset for each check
             for (let i = 1; i <= 10; i++) {
-                let userAnswer = document.getElementById(`answer-${i}`).value;
-                let correctAnswer = questions[i - 1].answer;
-                let resultSpan = document.getElementById(`result-${i}`);
+                const userAnswer = document.getElementById(`answer-${i}`).value;
+                const correctAnswer = questions[i - 1].answer;
+                const resultSpan = document.getElementById(`result-${i}`);
+                const inputField = document.getElementById(`answer-${i}`); // Get input field for styling
+
                 if (parseInt(userAnswer) === correctAnswer) {
                     resultSpan.textContent = "✅ Correct!";
                     resultSpan.style.color = "green";
+                    inputField.style.borderColor = "green"; // Visual feedback on correct input
+                    correctAnswers++;
                 } else {
                     resultSpan.textContent = `❌ Wrong! (${correctAnswer})`;
                     resultSpan.style.color = "red";
+                    inputField.style.borderColor = "red"; // Visual feedback on wrong input
+                    allCorrect = false;
                 }
             }
+
+            updateProgressBar();
+
+            if (allCorrect) {
+                streak++;
+            } else {
+                streak = 0;
+            }
+            document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
         }
+
+        function updateProgressBar() {
+            const progressBar = document.getElementById("progress-bar");
+            const progressPercentage = (correctAnswers / 10) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+
 
         function nextQuestions() {
             generateQuestions();
@@ -180,6 +115,9 @@
         }
 
         generateQuestions();
+
+        // Start the timer only when the user starts typing in an input field
+        document.getElementById('questions-container').addEventListener('input', startTimer, { once: true }); // once ensures it runs only the first time
     </script>
 </body>
 </html>
