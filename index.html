@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kumon Math Practice</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        button { padding: 10px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h1>Kumon-Style Math Practice</h1>
+    <p id="question"></p>
+    <input type="number" id="answer" placeholder="Your Answer">
+    <button onclick="checkAnswer()">Check</button>
+    <p id="result"></p>
+    <script>
+        let level = 1;
+        let num2 = Math.floor(Math.random() * 9) + 1;
+
+        function generateQuestion() {
+            document.getElementById("question").innerText = `${level} + ${num2} = ?`;
+        }
+
+        function checkAnswer() {
+            let userAnswer = document.getElementById("answer").value;
+            let correctAnswer = level + num2;
+
+            if (parseInt(userAnswer) === correctAnswer) {
+                document.getElementById("result").innerText = "Correct! 🎉";
+                level++; // Move to the next level
+            } else {
+                document.getElementById("result").innerText = `Wrong! The correct answer is ${correctAnswer}`;
+            }
+
+            num2 = Math.floor(Math.random() * 9) + 1;
+            generateQuestion();
+            document.getElementById("answer").value = "";
+        }
+
+        generateQuestion();
+    </script>
+</body>
+</html>
