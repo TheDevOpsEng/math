@@ -17,8 +17,8 @@
         /* Container Styling */
         .container {
             background: white;
-            max-width: 400px;
-            margin: 100px auto;
+            max-width: 500px;
+            margin: 50px auto;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
@@ -30,19 +30,18 @@
             margin-bottom: 15px;
         }
 
-        /* Question Styling */
-        #question {
-            font-size: 28px;
+        /* Question List */
+        .question-item {
+            font-size: 22px;
             font-weight: bold;
-            color: #007bff;
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         /* Input Field */
         input {
-            font-size: 22px;
-            padding: 10px;
-            width: 120px;
+            font-size: 18px;
+            padding: 8px;
+            width: 80px;
             text-align: center;
             border: 2px solid #ccc;
             border-radius: 8px;
@@ -63,7 +62,7 @@
             color: white;
             border-radius: 8px;
             cursor: pointer;
-            margin-left: 10px;
+            margin: 10px;
             transition: all 0.3s ease;
         }
 
@@ -72,15 +71,14 @@
         }
 
         /* Result Styling */
-        #result {
-            font-size: 20px;
+        .result {
+            font-size: 18px;
             font-weight: bold;
-            margin-top: 15px;
-            color: #28a745;
+            margin-top: 10px;
         }
 
         /* Responsive Design */
-        @media (max-width: 500px) {
+        @media (max-width: 600px) {
             .container {
                 width: 90%;
                 padding: 20px;
@@ -92,37 +90,55 @@
 
     <div class="container">
         <h1>🧮 Kumon-Style Math Practice</h1>
-        <p id="question"></p>
-        <input type="number" id="answer" placeholder="Your Answer">
-        <button onclick="checkAnswer()">Check</button>
-        <p id="result"></p>
+        <div id="questions-container"></div>
+        <button onclick="checkAnswers()">Check Answers</button>
+        <button onclick="generateQuestions()">Next 10 Questions</button>
     </div>
 
     <script>
-        let level = 1;
-        let num2 = Math.floor(Math.random() * 9) + 1;
+        let questions = [];
 
-        function generateQuestion() {
-            document.getElementById("question").innerText = `${level} + ${num2} = ?`;
-        }
+        function generateQuestions() {
+            let container = document.getElementById("questions-container");
+            container.innerHTML = ""; // Clear previous questions
+            questions = []; // Reset questions array
+            
+            for (let i = 1; i <= 10; i++) {
+                let num1 = Math.floor(Math.random() * 9) + 1;
+                let num2 = Math.floor(Math.random() * 9) + 1;
+                let questionText = `${num1} + ${num2} = ?`;
+                let answer = num1 + num2;
 
-        function checkAnswer() {
-            let userAnswer = document.getElementById("answer").value;
-            let correctAnswer = level + num2;
+                questions.push({ questionText, answer });
 
-            if (parseInt(userAnswer) === correctAnswer) {
-                document.getElementById("result").innerHTML = "✅ Correct! 🎉";
-                level++; // Increase level after correct answer
-            } else {
-                document.getElementById("result").innerHTML = `❌ Wrong! The answer is ${correctAnswer}`;
+                container.innerHTML += `
+                    <div class="question-item">
+                        ${questionText}
+                        <input type="number" id="answer-${i}">
+                        <span class="result" id="result-${i}"></span>
+                    </div>
+                `;
             }
-
-            num2 = Math.floor(Math.random() * 9) + 1;
-            generateQuestion();
-            document.getElementById("answer").value = "";
         }
 
-        generateQuestion();
+        function checkAnswers() {
+            for (let i = 1; i <= 10; i++) {
+                let userAnswer = document.getElementById(`answer-${i}`).value;
+                let resultSpan = document.getElementById(`result-${i}`);
+                let correctAnswer = questions[i - 1].answer;
+
+                if (parseInt(userAnswer) === correctAnswer) {
+                    resultSpan.innerHTML = "✅ Correct!";
+                    resultSpan.style.color = "green";
+                } else {
+                    resultSpan.innerHTML = `❌ Wrong! (Answer: ${correctAnswer})`;
+                    resultSpan.style.color = "red";
+                }
+            }
+        }
+
+        // Generate first 10 questions on load
+        generateQuestions();
     </script>
 
 </body>
