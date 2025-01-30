@@ -5,71 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kumon-Style Math Practice</title>
     <style>
+        /* General Styles */
         body {
             font-family: 'Arial', sans-serif;
             text-align: center;
-            background-color: #f4f4f4;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
             margin: 0;
             padding: 0;
         }
 
+        /* Container Styling */
         .container {
             background: white;
-            width: 50%;
-            margin: 50px auto;
+            max-width: 400px;
+            margin: 100px auto;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
         }
 
         h1 {
-            font-size: 26px;
+            font-size: 24px;
             color: #333;
-            margin-bottom: 20px;
-        }
-
-        p {
-            font-size: 22px;
-            color: #555;
             margin-bottom: 15px;
         }
 
-        input {
-            font-size: 20px;
-            padding: 10px;
-            width: 80px;
-            text-align: center;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            outline: none;
+        /* Question Styling */
+        #question {
+            font-size: 28px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 20px 0;
         }
 
+        /* Input Field */
+        input {
+            font-size: 22px;
+            padding: 10px;
+            width: 120px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #007bff;
+        }
+
+        /* Button Styling */
         button {
-            font-size: 20px;
+            font-size: 18px;
             padding: 10px 20px;
             border: none;
-            background-color: #007bff;
+            background: #007bff;
             color: white;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             margin-left: 10px;
-            transition: 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         button:hover {
-            background-color: #0056b3;
+            background: #0056b3;
         }
 
+        /* Result Styling */
         #result {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             margin-top: 15px;
+            color: #28a745;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 500px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h1>Kumon-Style Math Practice</h1>
+        <h1>🧮 Kumon-Style Math Practice</h1>
         <p id="question"></p>
         <input type="number" id="answer" placeholder="Your Answer">
         <button onclick="checkAnswer()">Check</button>
@@ -102,5 +124,6 @@
 
         generateQuestion();
     </script>
+
 </body>
 </html>
