@@ -119,9 +119,6 @@
         let startTime;
         let timerInterval;
         let timerStarted = false;
-        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-        let badgeEarned = false;
-        let funMessages = ["Keep going! You're a math star! ⭐", "Great job! You’re improving! 🚀", "Amazing effort! Keep it up! 🎯"];
 
         function generateQuestions() {
             let container = document.getElementById("questions-container");
@@ -130,8 +127,8 @@
             timerStarted = false;
 
             for (let i = 1; i <= 10; i++) {
-                let num1 = Math.floor(Math.random() * (level + 5)) + 1;
-                let num2 = Math.floor(Math.random() * (level + 5)) + 1;
+                let num1 = level;
+                let num2 = Math.floor(Math.random() * 10) + 1;
                 let questionText = `${num1} + ${num2} =`;
                 let answer = num1 + num2;
 
@@ -158,9 +155,23 @@
             }
         }
 
+        function checkAnswers() {
+            for (let i = 1; i <= 10; i++) {
+                let userAnswer = document.getElementById(`answer-${i}`).value;
+                let correctAnswer = questions[i - 1].answer;
+                let resultSpan = document.getElementById(`result-${i}`);
+                if (parseInt(userAnswer) === correctAnswer) {
+                    resultSpan.textContent = "✅ Correct!";
+                    resultSpan.style.color = "green";
+                } else {
+                    resultSpan.textContent = `❌ Wrong! (${correctAnswer})`;
+                    resultSpan.style.color = "red";
+                }
+            }
+        }
+
         function nextQuestions() {
             generateQuestions();
-            document.getElementById("next-btn").disabled = false;
         }
 
         function startChallengeMode() {
