@@ -38,6 +38,13 @@
             margin-bottom: 15px;
         }
 
+        /* History */
+        .history {
+            font-size: 16px;
+            margin-top: 15px;
+            color: #555;
+        }
+
         /* Question List */
         .question-item {
             font-size: 22px;
@@ -102,15 +109,17 @@
         <div id="questions-container"></div>
         <button onclick="checkAnswers()">Check Answers</button>
         <button onclick="nextQuestions()" disabled id="next-btn">Next 10 Questions</button>
+        <div class="history" id="history">📜 History: No records yet</div>
     </div>
 
     <script>
-        let level = 1;
-        let step = 1;
+        let level = localStorage.getItem("mathLevel") ? parseInt(localStorage.getItem("mathLevel")) : 1;
+        let step = localStorage.getItem("mathStep") ? parseInt(localStorage.getItem("mathStep")) : 1;
         let questions = [];
         let startTime;
         let timerInterval;
         let timerStarted = false;
+        let history = JSON.parse(localStorage.getItem("mathHistory")) || [];
 
         function generateQuestions() {
             let container = document.getElementById("questions-container");
@@ -144,6 +153,7 @@
             // Reset Timer Display
             document.getElementById("timer").textContent = "⏳ Time: 0s";
             clearInterval(timerInterval); // Ensure any existing timer is cleared
+            updateHistoryDisplay();
         }
 
         function startTimer() {
@@ -182,16 +192,36 @@
             // Stop the timer when answers are checked
             stopTimer();
 
-            // Enable the next button only if all answers are correct
-            document.getElementById("next-btn").disabled = !allCorrect;
+            // Store completion time in history
+            let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            history.push(`Level ${level}: ${elapsedTime}s`);
+            localStorage.setItem("mathHistory", JSON.stringify(history));
+
+            // Increase level if all answers are correct
+            if (allCorrect) {
+                localStorage.setItem("mathLevel", level + 1);
+                localStorage.setItem("mathStep", step);
+                document.getElementById("next-btn").disabled = false;
+            }
+
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            let historyContainer = document.getElementById("history");
+            if (history.length > 0) {
+                historyContainer.innerHTML = "📜 History:<br>" + history.slice(-5).join("<br>");
+            }
         }
 
         function nextQuestions() {
+            level = parseInt(localStorage.getItem("mathLevel")) || 1;
+            step = parseInt(localStorage.getItem("mathStep")) || 1;
             generateQuestions();
             document.getElementById("next-btn").disabled = true;
         }
 
-        // Generate first 10 questions on load
+        // Load initial questions
         generateQuestions();
     </script>
 
