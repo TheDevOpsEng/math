@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kumon-Style Math Practice</title>
+    <title>Fun Math Practice</title>
     <style>
-        /* General Styles */
         body {
             font-family: 'Arial', sans-serif;
             text-align: center;
@@ -14,7 +13,6 @@
             padding: 0;
         }
 
-        /* Container Styling */
         .container {
             background: white;
             max-width: 500px;
@@ -30,29 +28,19 @@
             margin-bottom: 15px;
         }
 
-        /* Timer */
-        .timer {
-            font-size: 20px;
+        .timer, .streak, .progress-bar-container, .leaderboard {
+            font-size: 18px;
             font-weight: bold;
             color: #007bff;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
-        /* History */
-        .history {
-            font-size: 16px;
-            margin-top: 15px;
-            color: #555;
-        }
-
-        /* Question List */
         .question-item {
             font-size: 22px;
             font-weight: bold;
             margin: 15px 0;
         }
 
-        /* Input Field */
         input {
             font-size: 18px;
             padding: 8px;
@@ -68,7 +56,6 @@
             border-color: #007bff;
         }
 
-        /* Button Styling */
         button {
             font-size: 18px;
             padding: 10px 20px;
@@ -85,51 +72,62 @@
             background: #0056b3;
         }
 
-        /* Result Styling */
-        .result {
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 10px;
+        .progress-bar-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px 0;
         }
 
-        /* Responsive Design */
-        @media (max-width: 600px) {
-            .container {
-                width: 90%;
-                padding: 20px;
-            }
+        .progress-bar {
+            height: 20px;
+            width: 0%;
+            background-color: #4caf50;
+            transition: width 0.5s ease-in-out;
         }
+
+        .leaderboard {
+            font-size: 16px;
+            margin-top: 15px;
+            color: #555;
+        }
+
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>🧮 Kumon-Style Math Practice</h1>
+        <h1>🎯 Fun Math Practice 🏆</h1>
         <div class="timer" id="timer">⏳ Time: 0s</div>
+        <div class="streak" id="streak">🔥 Streak: 0</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
         <div id="questions-container"></div>
         <button onclick="checkAnswers()">Check Answers</button>
-        <button onclick="nextQuestions()" disabled id="next-btn">Next 10 Questions</button>
-        <div class="history" id="history">📜 History: No records yet</div>
+        <button onclick="nextQuestions()" id="next-btn">Next 10 Questions</button>
+        <button onclick="startChallengeMode()">⚡ Speed Round</button>
+        <div class="leaderboard" id="leaderboard">🏅 Leaderboard: No records yet</div>
     </div>
 
     <script>
-        let level = localStorage.getItem("mathLevel") ? parseInt(localStorage.getItem("mathLevel")) : 1;
-        let step = localStorage.getItem("mathStep") ? parseInt(localStorage.getItem("mathStep")) : 1;
+        let level = 1;
+        let streak = 0;
+        let practiceCount = 0;
         let questions = [];
         let startTime;
         let timerInterval;
         let timerStarted = false;
-        let history = JSON.parse(localStorage.getItem("mathHistory")) || [];
 
         function generateQuestions() {
             let container = document.getElementById("questions-container");
-            container.innerHTML = ""; // Clear previous questions
-            questions = []; // Reset questions array
-            timerStarted = false; // Reset timer flag
+            container.innerHTML = "";
+            questions = [];
+            timerStarted = false;
 
             for (let i = 1; i <= 10; i++) {
                 let num1 = level;
-                let num2 = step;
+                let num2 = Math.floor(Math.random() * (level + 5)) + 1;
                 let questionText = `${num1} + ${num2} =`;
                 let answer = num1 + num2;
 
@@ -138,22 +136,11 @@
                 container.innerHTML += `
                     <div class="question-item">
                         ${questionText}
-                        <input type="number" id="answer-${i}" oninput="startTimer()" inputmode="numeric" pattern="[0-9]*">
-                        <span class="result" id="result-${i}"></span>
+                        <input type="number" id="answer-${i}" oninput="startTimer()">
+                        <span id="result-${i}" class="result"></span>
                     </div>
                 `;
-
-                step++;
-                if (step > 9) {
-                    level++;
-                    step = 1;
-                }
             }
-
-            // Reset Timer Display
-            document.getElementById("timer").textContent = "⏳ Time: 0s";
-            clearInterval(timerInterval); // Ensure any existing timer is cleared
-            updateHistoryDisplay();
         }
 
         function startTimer() {
@@ -167,63 +154,47 @@
             }
         }
 
-        function stopTimer() {
-            clearInterval(timerInterval);
-        }
-
         function checkAnswers() {
             let allCorrect = true;
-
             for (let i = 1; i <= 10; i++) {
                 let userAnswer = document.getElementById(`answer-${i}`).value;
-                let resultSpan = document.getElementById(`result-${i}`);
                 let correctAnswer = questions[i - 1].answer;
-
+                let resultSpan = document.getElementById(`result-${i}`);
                 if (parseInt(userAnswer) === correctAnswer) {
-                    resultSpan.innerHTML = "✅ Correct!";
+                    resultSpan.textContent = "✅ Correct!";
                     resultSpan.style.color = "green";
                 } else {
-                    resultSpan.innerHTML = `❌ Wrong! (${correctAnswer})`;
+                    resultSpan.textContent = `❌ Wrong! (${correctAnswer})`;
                     resultSpan.style.color = "red";
                     allCorrect = false;
                 }
             }
-
-            // Stop the timer when answers are checked
-            stopTimer();
-
-            // Store completion time in history
-            let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-            history.push(`Level ${level}: ${elapsedTime}s`);
-            localStorage.setItem("mathHistory", JSON.stringify(history));
-
-            // Increase level if all answers are correct
+            clearInterval(timerInterval);
             if (allCorrect) {
-                localStorage.setItem("mathLevel", level + 1);
-                localStorage.setItem("mathStep", step);
-                document.getElementById("next-btn").disabled = false;
+                streak++;
+                practiceCount++;
+                if (practiceCount >= 5) {
+                    level++;
+                    practiceCount = 0;
+                }
+                document.getElementById("progress-bar").style.width = (practiceCount * 20) + "%";
+            } else {
+                streak = 0;
             }
-
-            updateHistoryDisplay();
-        }
-
-        function updateHistoryDisplay() {
-            let historyContainer = document.getElementById("history");
-            if (history.length > 0) {
-                historyContainer.innerHTML = "📜 History:<br>" + history.slice(-5).join("<br>");
-            }
+            document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
         }
 
         function nextQuestions() {
-            level = parseInt(localStorage.getItem("mathLevel")) || 1;
-            step = parseInt(localStorage.getItem("mathStep")) || 1;
             generateQuestions();
-            document.getElementById("next-btn").disabled = true;
+            document.getElementById("next-btn").disabled = false;
         }
 
-        // Load initial questions
+        function startChallengeMode() {
+            alert("Challenge mode is starting!");
+            generateQuestions();
+        }
+
         generateQuestions();
     </script>
-
 </body>
 </html>
