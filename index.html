@@ -30,6 +30,14 @@
             margin-bottom: 15px;
         }
 
+        /* Timer */
+        .timer {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
         /* Question List */
         .question-item {
             font-size: 22px;
@@ -90,6 +98,7 @@
 
     <div class="container">
         <h1>🧮 Kumon-Style Math Practice</h1>
+        <div class="timer" id="timer">⏳ Time: 0s</div>
         <div id="questions-container"></div>
         <button onclick="checkAnswers()">Check Answers</button>
         <button onclick="nextQuestions()" disabled id="next-btn">Next 10 Questions</button>
@@ -99,6 +108,8 @@
         let level = 1;
         let step = 1;
         let questions = [];
+        let startTime;
+        let timerInterval;
 
         function generateQuestions() {
             let container = document.getElementById("questions-container");
@@ -106,7 +117,7 @@
             questions = []; // Reset questions array
             
             for (let i = 1; i <= 10; i++) {
-                let num1 = level; // Structured progression (1+1, 1+2, 1+3, …)
+                let num1 = level;
                 let num2 = step;
                 let questionText = `${num1} + ${num2} =`;
                 let answer = num1 + num2;
@@ -121,12 +132,30 @@
                     </div>
                 `;
 
-                step++; // Increase second number
+                step++;
                 if (step > 9) {
-                    level++; // Move to next base number
-                    step = 1; // Reset second number
+                    level++;
+                    step = 1;
                 }
             }
+
+            // Start the timer
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval); // Clear any existing timer
+            startTime = Date.now();
+            document.getElementById("timer").textContent = "⏳ Time: 0s";
+
+            timerInterval = setInterval(() => {
+                let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById("timer").textContent = `⏳ Time: ${elapsedTime}s`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
         }
 
         function checkAnswers() {
@@ -147,13 +176,16 @@
                 }
             }
 
+            // Stop the timer when answers are checked
+            stopTimer();
+
             // Enable the next button only if all answers are correct
             document.getElementById("next-btn").disabled = !allCorrect;
         }
 
         function nextQuestions() {
             generateQuestions();
-            document.getElementById("next-btn").disabled = true; // Disable button again
+            document.getElementById("next-btn").disabled = true;
         }
 
         // Generate first 10 questions on load
