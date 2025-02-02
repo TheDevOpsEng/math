@@ -44,20 +44,32 @@
             color: #ffffff;
         }
 
-        .auth-container {
-            margin-bottom: 20px;
+        .timer, .streak, .score, .progress-bar-container, .leaderboard, .badges, .random-message {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+
+        .question-item {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 15px 0;
         }
 
         input {
             font-size: 18px;
             padding: 8px;
-            width: 80%;
+            width: 80px;
             text-align: center;
             border: 2px solid #ccc;
             border-radius: 8px;
             outline: none;
             transition: 0.3s;
-            margin: 5px;
+        }
+
+        input:focus {
+            border-color: #007bff;
         }
 
         button {
@@ -76,130 +88,210 @@
             background: #0056b3;
         }
 
+        .progress-bar-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            height: 20px;
+            width: 0%;
+            background-color: #4caf50;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .leaderboard, .badges, .random-message {
+            font-size: 16px;
+            margin-top: 15px;
+            color: #555;
+        }
+
+        .dark-mode .leaderboard, .dark-mode .badges, .dark-mode .random-message {
+            color: #ccc;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .result {
+            animation: fadeIn 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="auth-container">
-            <h2>User Login</h2>
-            <input type="text" id="username" placeholder="Enter your username">
-            <button onclick="loginUser()">Login</button>
-            <button onclick="registerUser()">Register</button>
+        <h1>🎯 Fun Math Practice 🏆</h1>
+        <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+        <div class="timer" id="timer">⏳ Time: 0s</div>
+        <div class="streak" id="streak">🔥 Streak: 0</div>
+        <div class="score" id="score">🏆 Score: 0</div>
+        <div class="level" id="level">📈 Level: 1</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
         </div>
-
-        <div id="game-container" style="display:none;">
-            <h1>🎯 Fun Math Practice 🏆</h1>
-            <button onclick="logoutUser()">🚪 Logout</button>
-            <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
-            <div class="timer" id="timer">⏳ Time: 0s</div>
-            <div class="streak" id="streak">🔥 Streak: 0</div>
-            <div class="score" id="score">🏆 Score: 0</div>
-            <div class="level" id="level">📈 Level: 1</div>
-            <select id="operation" onchange="generateQuestions()">
-                <option value="addition">➕ Addition</option>
-                <option value="subtraction">➖ Subtraction</option>
-                <option value="multiplication">✖️ Multiplication</option>
-                <option value="division">➗ Division</option>
-            </select>
-            <div id="questions-container"></div>
-            <button onclick="checkAnswers()">Check Answers</button>
-            <button onclick="nextQuestions()">Next 10 Questions</button>
-            <button onclick="restartGame()">🔄 Restart</button>
-        </div>
+        <select id="operation" onchange="generateQuestions()">
+            <option value="addition">➕ Addition</option>
+            <option value="subtraction">➖ Subtraction</option>
+            <option value="multiplication">✖️ Multiplication</option>
+            <option value="division">➗ Division</option>
+        </select>
+        <div id="questions-container"></div>
+        <button onclick="checkAnswers()">Check Answers</button>
+        <button onclick="nextQuestions()" id="next-btn">Next 10 Questions</button>
+        <button onclick="startChallengeMode()">⚡ Speed Round</button>
+        <button onclick="restartGame()">🔄 Restart</button>
+        <div class="badges" id="badges">🏅 Achievements: None</div>
+        <div class="random-message" id="random-message"></div>
+        <div class="leaderboard" id="leaderboard">🏅 Leaderboard:<br><span id="leaderboard-records">No records yet</span></div>
     </div>
+
+    <audio id="correct-sound" src="https://www.soundjay.com/button/beep-07.mp3"></audio>
+    <audio id="wrong-sound" src="https://www.soundjay.com/button/beep-08.mp3"></audio>
 
     <script>
         let level = 1;
         let streak = 0;
         let score = 0;
         let questions = [];
-        let currentUser = null;
-        let usersData = JSON.parse(localStorage.getItem("usersData")) || {};
+        let startTime;
+        let timerInterval;
+        let timerStarted = false;
+        let challengeTime = 60; // 60 seconds for challenge mode
+        let achievements = {
+            "10-streak": false,
+            "100-points": false,
+        };
 
-        function checkUserSession() {
-            currentUser = localStorage.getItem("currentUser");
-            if (currentUser && usersData[currentUser]) {
-                loadUserProgress();
-                document.getElementById("auth-container").style.display = "none";
-                document.getElementById("game-container").style.display = "block";
-            } else {
-                document.getElementById("auth-container").style.display = "block";
-                document.getElementById("game-container").style.display = "none";
+        function generateQuestions() {
+            let container = document.getElementById("questions-container");
+            container.innerHTML = "";
+            questions = [];
+            resetTimer();
+
+            let operation = document.getElementById("operation").value;
+
+            for (let i = 1; i <= 10; i++) {
+                let num1, num2, questionText, answer;
+
+                // Adjust difficulty based on level
+                if (level <= 5) {
+                    num1 = Math.floor(Math.random() * 10) + 1; // Level 1-5: Single-digit numbers
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                } else if (level <= 10) {
+                    num1 = Math.floor(Math.random() * 20) + 1; // Level 6-10: Two-digit numbers
+                    num2 = Math.floor(Math.random() * 20) + 1;
+                } else if (level <= 15) {
+                    num1 = Math.floor(Math.random() * 50) + 1; // Level 11-15: Larger numbers
+                    num2 = Math.floor(Math.random() * 50) + 1;
+                } else {
+                    num1 = Math.floor(Math.random() * 100) + 1; // Level 16+: Even larger numbers
+                    num2 = Math.floor(Math.random() * 100) + 1;
+                }
+
+                // Generate question based on selected operation
+                switch (operation) {
+                    case "addition":
+                        questionText = `${num1} + ${num2} =`;
+                        answer = num1 + num2;
+                        break;
+                    case "subtraction":
+                        // Ensure num1 is greater than or equal to num2 to avoid negative answers
+                        if (num1 < num2) [num1, num2] = [num2, num1];
+                        questionText = `${num1} - ${num2} =`;
+                        answer = num1 - num2;
+                        break;
+                    case "multiplication":
+                        questionText = `${num1} × ${num2} =`;
+                        answer = num1 * num2;
+                        break;
+                    case "division":
+                        // Ensure num1 is divisible by num2
+                        num2 = Math.floor(Math.random() * 10) + 1; // Avoid division by zero
+                        num1 = num2 * (Math.floor(Math.random() * 10) + 1); // Ensure whole number result
+                        questionText = `${num1} ÷ ${num2} =`;
+                        answer = num1 / num2;
+                        break;
+                }
+
+                questions.push({ questionText, answer });
+
+                container.innerHTML += `
+                    <div class="question-item">
+                        ${questionText}
+                        <input type="number" id="answer-${i}" oninput="startTimer()" inputmode="numeric" pattern="[0-9]*">
+                        <button onclick="showHint(${i - 1})">💡 Hint</button>
+                        <span id="result-${i}" class="result"></span>
+                    </div>
+                `;
             }
         }
 
-        function registerUser() {
-            let username = document.getElementById("username").value.trim();
-            if (!username) {
-                alert("Please enter a valid username.");
-                return;
+        function startTimer() {
+            if (!timerStarted) {
+                timerStarted = true;
+                startTime = Date.now();
+                timerInterval = setInterval(() => {
+                    let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                    document.getElementById("timer").textContent = `⏳ Time: ${elapsedTime}s`;
+                }, 1000);
             }
-            if (usersData[username]) {
-                alert("Username already exists! Please choose another.");
-                return;
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerStarted = false;
+            document.getElementById("timer").textContent = "⏳ Time: 0s";
+        }
+
+        function checkAnswers() {
+            let correctCount = 0;
+            for (let i = 1; i <= 10; i++) {
+                let userAnswer = document.getElementById(`answer-${i}`).value;
+                let correctAnswer = questions[i - 1].answer;
+                let resultSpan = document.getElementById(`result-${i}`);
+                if (parseFloat(userAnswer) === correctAnswer) {
+                    resultSpan.textContent = "✅ Correct!";
+                    resultSpan.style.color = "green";
+                    correctCount++;
+                    score += 10;
+                    document.getElementById("correct-sound").play();
+                } else {
+                    resultSpan.textContent = `❌ Wrong! (${correctAnswer})`;
+                    resultSpan.style.color = "red";
+                    score -= 5;
+                    document.getElementById("wrong-sound").play();
+                }
             }
-
-            usersData[username] = { score: 0, level: 1, streak: 0 };
-            localStorage.setItem("usersData", JSON.stringify(usersData));
-            alert(`Account created! Welcome, ${username}`);
-            loginUser();
-        }
-
-        function loginUser() {
-            let username = document.getElementById("username").value.trim();
-            if (!usersData[username]) {
-                alert("User does not exist! Please register first.");
-                return;
-            }
-
-            currentUser = username;
-            localStorage.setItem("currentUser", username);
-            loadUserProgress();
-            document.getElementById("auth-container").style.display = "none";
-            document.getElementById("game-container").style.display = "block";
-        }
-
-        function logoutUser() {
-            localStorage.removeItem("currentUser");
-            currentUser = null;
-            document.getElementById("auth-container").style.display = "block";
-            document.getElementById("game-container").style.display = "none";
-        }
-
-        function loadUserProgress() {
-            if (!currentUser || !usersData[currentUser]) return;
-            let userData = usersData[currentUser];
-
-            score = userData.score;
-            level = userData.level;
-            streak = userData.streak;
-
-            document.getElementById("score").textContent = `🏆 Score: ${score}`;
-            document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
-            document.getElementById("level").textContent = `📈 Level: ${level}`;
-
-            generateQuestions();
-        }
-
-        function saveUserProgress() {
-            if (!currentUser || !usersData[currentUser]) return;
-            usersData[currentUser] = { score, level, streak };
-            localStorage.setItem("usersData", JSON.stringify(usersData));
-        }
-
-        function updateScore() {
-            document.getElementById("score").textContent = `🏆 Score: ${score}`;
-            saveUserProgress();
+            updateStreak(correctCount);
+            updateProgressBar(correctCount);
+            updateScore();
+            checkAchievements();
+            updateLevel(correctCount);
         }
 
         function updateStreak(correctCount) {
             if (correctCount === 10) {
                 streak++;
+                document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
             } else {
                 streak = 0;
+                document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
             }
-            document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
-            saveUserProgress();
+        }
+
+        function updateProgressBar(correctCount) {
+            let progressBar = document.getElementById("progress-bar");
+            let progress = (correctCount / 10) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function updateScore() {
+            document.getElementById("score").textContent = `🏆 Score: ${score}`;
         }
 
         function updateLevel(correctCount) {
@@ -208,47 +300,87 @@
                 document.getElementById("level").textContent = `📈 Level: ${level}`;
                 alert(`Congratulations! You've reached Level ${level}.`);
                 generateQuestions();
-                saveUserProgress();
             }
         }
 
-        function generateQuestions() {
-            let container = document.getElementById("questions-container");
-            container.innerHTML = "";
-            questions = [];
-
-            for (let i = 1; i <= 10; i++) {
-                let num1 = Math.floor(Math.random() * 10) + 1;
-                let num2 = Math.floor(Math.random() * 10) + 1;
-                let questionText = `${num1} + ${num2} =`;
-                let answer = num1 + num2;
-
-                questions.push({ questionText, answer });
-
-                container.innerHTML += `
-                    <div class="question-item">
-                        ${questionText}
-                        <input type="number" id="answer-${i}">
-                    </div>
-                `;
+        function checkAchievements() {
+            if (streak >= 10 && !achievements["10-streak"]) {
+                achievements["10-streak"] = true;
+                alert("Achievement Unlocked: 10 Correct Answers in a Row!");
             }
+            if (score >= 100 && !achievements["100-points"]) {
+                achievements["100-points"] = true;
+                alert("Achievement Unlocked: 100 Points!");
+            }
+            updateBadges();
         }
 
-        function checkAnswers() {
-            let correctCount = 0;
-            for (let i = 1; i <= 10; i++) {
-                let userAnswer = document.getElementById(`answer-${i}`).value;
-                if (parseInt(userAnswer) === questions[i - 1].answer) {
-                    correctCount++;
-                    score += 10;
-                }
-            }
-            updateStreak(correctCount);
+        function updateBadges() {
+            let badgesHTML = Object.keys(achievements).filter(key => achievements[key]).join(", ");
+            document.getElementById("badges").textContent = `🏅 Achievements: ${badgesHTML || "None"}`;
+        }
+
+        function nextQuestions() {
+            generateQuestions();
+            resetTimer();
+            document.getElementById("progress-bar").style.width = "0%";
+        }
+
+        function startChallengeMode() {
+            alert("Challenge mode is starting! You have 60 seconds.");
+            generateQuestions();
+            startTimer();
+            setTimeout(endChallengeMode, challengeTime * 1000);
+        }
+
+        function endChallengeMode() {
+            clearInterval(timerInterval);
+            alert(`Time's up! Your score is ${score}.`);
+            updateLeaderboard(score);
+            restartGame();
+        }
+
+        function updateLeaderboard(score) {
+            let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+            let name = prompt("You got a high score! Enter your name:");
+            leaderboard.push({ name, score });
+            leaderboard.sort((a, b) => b.score - a.score); // Sort by score descending
+            localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+            displayLeaderboard();
+        }
+
+        function displayLeaderboard() {
+            let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+            let leaderboardHTML = leaderboard.slice(0, 5).map((entry, index) => 
+                `${index + 1}. ${entry.name}: ${entry.score} points`
+            ).join("<br>");
+            document.getElementById("leaderboard-records").innerHTML = leaderboardHTML;
+        }
+
+        function restartGame() {
+            score = 0;
+            streak = 0;
+            level = 1;
+            generateQuestions();
+            resetTimer();
             updateScore();
-            updateLevel(correctCount);
+            updateStreak(0);
+            updateProgressBar(0);
+            document.getElementById("level").textContent = `📈 Level: ${level}`;
         }
 
-        checkUserSession();
+        function showHint(index) {
+            let correctAnswer = questions[index].answer;
+            alert(`Hint: The first digit is ${String(correctAnswer)[0]}`);
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+            document.querySelector(".container").classList.toggle("dark-mode");
+        }
+
+        generateQuestions();
+        displayLeaderboard();
     </script>
 </body>
 </html>
