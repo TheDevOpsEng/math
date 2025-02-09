@@ -21,9 +21,10 @@
 
         .container {
             background: white;
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 30px;
+            max-width: 90%;
+            width: 100%;
+            margin: 20px auto;
+            padding: 20px;
             border-radius: 12px;
             box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.15);
             transition: background 0.3s, color 0.3s;
@@ -35,7 +36,7 @@
         }
 
         h1 {
-            font-size: 24px;
+            font-size: 2em;
             color: #333;
             margin-bottom: 15px;
         }
@@ -44,23 +45,32 @@
             color: #ffffff;
         }
 
-        .timer, .streak, .score, .progress-bar-container, .leaderboard, .badges, .random-message {
-            font-size: 18px;
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 1.2em;
             font-weight: bold;
-            color: #007bff;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stats div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .question-item {
-            font-size: 22px;
+            font-size: 1.5em;
             font-weight: bold;
             margin: 15px 0;
         }
 
         input {
-            font-size: 18px;
+            font-size: 1em;
             padding: 8px;
-            width: 80px;
+            width: 60%;
+            max-width: 100px;
             text-align: center;
             border: 2px solid #ccc;
             border-radius: 8px;
@@ -72,20 +82,31 @@
             border-color: #007bff;
         }
 
+        .button-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
         button {
-            font-size: 18px;
-            padding: 10px 20px;
+            font-size: 1em;
+            padding: 12px 20px;
             border: none;
             background: #007bff;
             color: white;
             border-radius: 8px;
             cursor: pointer;
-            margin: 10px;
             transition: all 0.3s ease;
         }
 
         button:hover {
             background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .progress-bar-container {
@@ -103,16 +124,6 @@
             transition: width 0.5s ease-in-out;
         }
 
-        .leaderboard, .badges, .random-message {
-            font-size: 16px;
-            margin-top: 15px;
-            color: #555;
-        }
-
-        .dark-mode .leaderboard, .dark-mode .badges, .dark-mode .random-message {
-            color: #ccc;
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -121,15 +132,51 @@
         .result {
             animation: fadeIn 0.5s ease-in-out;
         }
+
+        /* Media Queries for Mobile Devices */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .stats {
+                font-size: 1em;
+                gap: 10px;
+            }
+
+            .question-item {
+                font-size: 1.2em;
+            }
+
+            input {
+                width: 50%;
+                font-size: 0.9em;
+            }
+
+            button {
+                font-size: 0.9em;
+                padding: 10px 15px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .button-container {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎯 Fun Math Practice 🏆</h1>
         <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
-        <div class="timer" id="timer">⏳ Time: 0s</div>
-        <div class="streak" id="streak">🔥 Streak: 0</div>
-        <div class="score" id="score">🏆 Score: 0</div>
+        <div class="stats">
+            <div id="timer">⏳ Time: 0s</div>
+            <div id="streak">🔥 Streak: 0</div>
+            <div id="score">🏆 Score: 0</div>
+        </div>
         <div class="level" id="level">📈 Level: 1</div>
         <div class="progress-bar-container">
             <div class="progress-bar" id="progress-bar"></div>
@@ -141,13 +188,12 @@
             <option value="division">➗ Division</option>
         </select>
         <div id="questions-container"></div>
-        <button onclick="checkAnswers()">Check Answers</button>
-        <button onclick="nextQuestions()" id="next-btn">Next 10 Questions</button>
-        <button onclick="startChallengeMode()">⚡ Speed Round</button>
-        <button onclick="restartGame()">🔄 Restart</button>
-        <div class="badges" id="badges">🏅 Achievements: None</div>
-        <div class="random-message" id="random-message"></div>
-        <div class="leaderboard" id="leaderboard">🏅 Leaderboard:<br><span id="leaderboard-records">No records yet</span></div>
+        <div class="button-container">
+            <button onclick="checkAnswers()">Check Answers</button>
+            <button onclick="nextQuestions()" id="next-btn">Next 10 Questions</button>
+            <button onclick="startChallengeMode()">⚡ Speed Round</button>
+            <button onclick="restartGame()">🔄 Restart</button>
+        </div>
     </div>
 
     <audio id="correct-sound" src="https://www.soundjay.com/button/beep-07.mp3"></audio>
@@ -162,10 +208,6 @@
         let timerInterval;
         let timerStarted = false;
         let challengeTime = 60; // 60 seconds for challenge mode
-        let achievements = {
-            "10-streak": false,
-            "100-points": false,
-        };
 
         function generateQuestions() {
             let container = document.getElementById("questions-container");
@@ -224,7 +266,6 @@
                     <div class="question-item">
                         ${questionText}
                         <input type="number" id="answer-${i}" oninput="startTimer()" inputmode="numeric" pattern="[0-9]*">
-                        <button onclick="showHint(${i - 1})">💡 Hint</button>
                         <span id="result-${i}" class="result"></span>
                     </div>
                 `;
@@ -270,7 +311,6 @@
             updateStreak(correctCount);
             updateProgressBar(correctCount);
             updateScore();
-            checkAchievements();
             updateLevel(correctCount);
         }
 
@@ -303,23 +343,6 @@
             }
         }
 
-        function checkAchievements() {
-            if (streak >= 10 && !achievements["10-streak"]) {
-                achievements["10-streak"] = true;
-                alert("Achievement Unlocked: 10 Correct Answers in a Row!");
-            }
-            if (score >= 100 && !achievements["100-points"]) {
-                achievements["100-points"] = true;
-                alert("Achievement Unlocked: 100 Points!");
-            }
-            updateBadges();
-        }
-
-        function updateBadges() {
-            let badgesHTML = Object.keys(achievements).filter(key => achievements[key]).join(", ");
-            document.getElementById("badges").textContent = `🏅 Achievements: ${badgesHTML || "None"}`;
-        }
-
         function nextQuestions() {
             generateQuestions();
             resetTimer();
@@ -336,25 +359,7 @@
         function endChallengeMode() {
             clearInterval(timerInterval);
             alert(`Time's up! Your score is ${score}.`);
-            updateLeaderboard(score);
             restartGame();
-        }
-
-        function updateLeaderboard(score) {
-            let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-            let name = prompt("You got a high score! Enter your name:");
-            leaderboard.push({ name, score });
-            leaderboard.sort((a, b) => b.score - a.score); // Sort by score descending
-            localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-            displayLeaderboard();
-        }
-
-        function displayLeaderboard() {
-            let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-            let leaderboardHTML = leaderboard.slice(0, 5).map((entry, index) => 
-                `${index + 1}. ${entry.name}: ${entry.score} points`
-            ).join("<br>");
-            document.getElementById("leaderboard-records").innerHTML = leaderboardHTML;
         }
 
         function restartGame() {
@@ -369,18 +374,12 @@
             document.getElementById("level").textContent = `📈 Level: ${level}`;
         }
 
-        function showHint(index) {
-            let correctAnswer = questions[index].answer;
-            alert(`Hint: The first digit is ${String(correctAnswer)[0]}`);
-        }
-
         function toggleDarkMode() {
             document.body.classList.toggle("dark-mode");
             document.querySelector(".container").classList.toggle("dark-mode");
         }
 
         generateQuestions();
-        displayLeaderboard();
     </script>
 </body>
 </html>
