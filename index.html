@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Let's learn Math</title>
+    <title>Fun Math Practice</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -124,6 +124,21 @@
             transition: width 0.5s ease-in-out;
         }
 
+        .voice-selector {
+            margin: 15px 0;
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid #007bff;
+            background: white;
+            font-size: 1em;
+        }
+
+        .dark-mode .voice-selector {
+            background: #2d2d2d;
+            color: white;
+            border-color: #0056b3;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -171,6 +186,9 @@
     <div class="container">
         <h1>🎯 Fun Math Practice 🏆</h1>
         <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+        <select id="voiceSelector" class="voice-selector">
+            <option value="">Loading Voices...</option>
+        </select>
         <div class="stats">
             <div id="timer">⏳ Time: 0s</div>
             <div id="streak">🔥 Streak: 0</div>
@@ -208,6 +226,8 @@
         let timerStarted = false;
         let challengeTime = 60;
         let synth = window.speechSynthesis;
+        let voices = [];
+        let selectedVoice = null;
 
         function generateQuestions() {
             let container = document.getElementById("questions-container");
@@ -274,10 +294,8 @@
         }
 
         function speakQuestion(question) {
-            if (synth.speaking) {
-                synth.cancel();
-            }
-            
+            if (synth.speaking) synth.cancel();
+
             const utterance = new SpeechSynthesisUtterance(question
                 .replace('+', 'plus')
                 .replace('-', 'minus')
@@ -286,17 +304,42 @@
                 .replace('=', 'equals')
             );
 
-            utterance.rate = 0.9;
-            utterance.pitch = 1;
-            utterance.volume = 1;
-
-            const voices = synth.getVoices();
-            if (voices.length > 0) {
-                utterance.voice = voices.find(voice => voice.lang === 'en-US') || voices[0];
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
             }
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
 
             synth.speak(utterance);
         }
+
+        function loadVoices() {
+            voices = synth.getVoices();
+            const voiceSelector = document.getElementById('voiceSelector');
+            voiceSelector.innerHTML = '';
+            
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelector.appendChild(option);
+            });
+
+            const defaultVoice = voices.find(voice => 
+                voice.lang === 'en-US' && voice.name.includes('Google')
+            ) || voices[0];
+            
+            if (defaultVoice) {
+                selectedVoice = defaultVoice;
+                voiceSelector.value = voices.indexOf(defaultVoice);
+            }
+        }
+
+        document.getElementById('voiceSelector').addEventListener('change', function() {
+            selectedVoice = voices[this.value];
+            localStorage.setItem('selectedVoiceIndex', this.value);
+        });
 
         function startTimer() {
             if (!timerStarted) {
@@ -405,7 +448,18 @@
             document.querySelector(".container").classList.toggle("dark-mode");
         }
 
-        // Initialize the app
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        window.addEventListener('load', () => {
+            const savedVoiceIndex = localStorage.getItem('selectedVoiceIndex');
+            if (savedVoiceIndex) {
+                document.getElementById('voiceSelector').value = savedVoiceIndex;
+                selectedVoice = voices[savedVoiceIndex];
+            }
+        });
+
         generateQuestions();
     </script>
 </body>
