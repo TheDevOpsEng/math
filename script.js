@@ -2,53 +2,57 @@ let level = 1;
 let streak = 0;
 let score = 0;
 let questions = [];
+let startTime;
+let timerInterval;
+let challengeTime = 60; // Speed round duration in seconds
 let synth = window.speechSynthesis;
-let voices = [];
 let selectedVoice = null;
 
-// Ensure voices are loaded properly
+// Load only US English system voices
 function loadVoices() {
-    voices = synth.getVoices();
-    const voiceSelector = document.getElementById("voiceSelector");
+    let voices = synth.getVoices();
+    let voiceSelector = document.getElementById("voiceSelector");
     voiceSelector.innerHTML = ""; // Clear existing options
 
-    if (voices.length === 0) {
-        setTimeout(loadVoices, 100); // Retry until voices are available
+    // Filter for US English voices (Google or Windows)
+    let usVoices = voices.filter(voice => voice.lang === "en-US" && voice.name.includes("Google"));
+
+    if (usVoices.length === 0) {
+        setTimeout(loadVoices, 100); // Retry if voices aren't available
         return;
     }
 
-    voices.forEach((voice, index) => {
-        const option = document.createElement("option");
-        option.value = index;
-        option.textContent = `${voice.name} (${voice.lang})`;
-        voiceSelector.appendChild(option);
-    });
+    let voice = usVoices[0]; // Use the first Google US voice found
+    selectedVoice = voice;
 
-    // Set default voice
-    const defaultVoice = voices.find(voice => voice.lang.includes("en")) || voices[0];
-    if (defaultVoice) {
-        selectedVoice = defaultVoice;
-        voiceSelector.value = voices.indexOf(defaultVoice);
+    // Add the voice option to the dropdown
+    let option = document.createElement("option");
+    option.value = voice.name;
+    option.textContent = voice.name;
+    voiceSelector.appendChild(option);
+}
+
+// Speak the given question using the selected voice
+function speakQuestion(question) {
+    if (synth.speaking) synth.cancel();
+
+    let utterance = new SpeechSynthesisUtterance(question
+        .replace('+', 'plus')
+        .replace('-', 'minus')
+        .replace('×', 'times')
+        .replace('÷', 'divided by')
+        .replace('=', 'equals')
+    );
+
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
     }
+
+    utterance.rate = 1.0;
+    synth.speak(utterance);
 }
 
-// Event listener for voice selection
-document.getElementById("voiceSelector").addEventListener("change", function () {
-    selectedVoice = voices[this.value];
-    localStorage.setItem("selectedVoiceIndex", this.value);
-});
-
-// Ensure voices are loaded when the page is ready
-if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = loadVoices;
-}
-
-// Retry voice loading on page load in case it fails initially
-window.onload = function () {
-    setTimeout(loadVoices, 100);
-};
-
-// Function to generate math questions
+// Generate 10 questions
 function generateQuestions() {
     let container = document.getElementById("questions-container");
     container.innerHTML = "";
@@ -65,12 +69,9 @@ function generateQuestions() {
         } else if (level <= 10) {
             num1 = Math.floor(Math.random() * 20) + 1;
             num2 = Math.floor(Math.random() * 20) + 1;
-        } else if (level <= 15) {
+        } else {
             num1 = Math.floor(Math.random() * 50) + 1;
             num2 = Math.floor(Math.random() * 50) + 1;
-        } else {
-            num1 = Math.floor(Math.random() * 100) + 1;
-            num2 = Math.floor(Math.random() * 100) + 1;
         }
 
         switch (operation) {
@@ -100,13 +101,15 @@ function generateQuestions() {
         container.innerHTML += `
             <div class="question-item">
                 ${questionText}
-                <input type="number" id="answer-${i}" inputmode="numeric" pattern="[0-9]*">
+                <input type="number" id="answer-${i}" inputmode="numeric" pattern="[0-9]*"
+                    onfocus="speakQuestion('${questionText}')">
                 <span id="result-${i}" class="result"></span>
             </div>
         `;
     }
 }
 
+// Check answers and update score
 function checkAnswers() {
     let correctCount = 0;
     for (let i = 1; i <= 10; i++) {
@@ -125,31 +128,63 @@ function checkAnswers() {
             score -= 5;
         }
     }
-
     updateScore();
 }
 
+// Update score display
 function updateScore() {
     document.getElementById("score").textContent = `🏆 Score: ${score}`;
 }
 
-function nextQuestions() {
+// Start a 60-second challenge round
+function startChallengeMode() {
+    alert("⚡ Speed Round Started! Solve as many as possible in 60 seconds!");
     generateQuestions();
+    startTime = Date.now();
+    let timeRemaining = challengeTime;
+
+    document.getElementById("timer").textContent = `⏳ Time: ${timeRemaining}s`;
+
+    timerInterval = setInterval(() => {
+        timeRemaining = challengeTime - Math.floor((Date.now() - startTime) / 1000);
+        document.getElementById("timer").textContent = `⏳ Time: ${timeRemaining}s`;
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            alert(`⏰ Time's Up! Your final score: ${score}`);
+            restartGame();
+        }
+    }, 1000);
 }
 
+// Reset game state
 function restartGame() {
     score = 0;
     level = 1;
+    clearInterval(timerInterval);
+    document.getElementById("timer").textContent = "⏳ Time: 0s";
     generateQuestions();
     updateScore();
 }
 
+// Toggle Dark Mode
 function toggleDarkMode() {
     document.body.classList.toggle("dark-mode");
     document.querySelector(".container").classList.toggle("dark-mode");
 }
 
+// Ensure voices are loaded when the page is ready
+if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+// Retry voice loading on page load in case it fails initially
+window.onload = function () {
+    setTimeout(loadVoices, 100);
+};
+
+// Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
     generateQuestions();
-    loadVoices(); // Ensure voices are loaded on page load
+    loadVoices();
 });
