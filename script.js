@@ -2,7 +2,53 @@ let level = 1;
 let streak = 0;
 let score = 0;
 let questions = [];
+let synth = window.speechSynthesis;
+let voices = [];
+let selectedVoice = null;
 
+// Ensure voices are loaded properly
+function loadVoices() {
+    voices = synth.getVoices();
+    const voiceSelector = document.getElementById("voiceSelector");
+    voiceSelector.innerHTML = ""; // Clear existing options
+
+    if (voices.length === 0) {
+        setTimeout(loadVoices, 100); // Retry until voices are available
+        return;
+    }
+
+    voices.forEach((voice, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        voiceSelector.appendChild(option);
+    });
+
+    // Set default voice
+    const defaultVoice = voices.find(voice => voice.lang.includes("en")) || voices[0];
+    if (defaultVoice) {
+        selectedVoice = defaultVoice;
+        voiceSelector.value = voices.indexOf(defaultVoice);
+    }
+}
+
+// Event listener for voice selection
+document.getElementById("voiceSelector").addEventListener("change", function () {
+    selectedVoice = voices[this.value];
+    localStorage.setItem("selectedVoiceIndex", this.value);
+});
+
+// Ensure voices are loaded when the page is ready
+if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+// Retry voice loading on page load in case it fails initially
+window.onload = function () {
+    setTimeout(loadVoices, 100);
+};
+
+// Function to generate math questions
 function generateQuestions() {
     let container = document.getElementById("questions-container");
     container.innerHTML = "";
@@ -105,4 +151,5 @@ function toggleDarkMode() {
 
 document.addEventListener("DOMContentLoaded", () => {
     generateQuestions();
+    loadVoices(); // Ensure voices are loaded on page load
 });
