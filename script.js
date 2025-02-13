@@ -1,5 +1,4 @@
 let level = 1;
-let streak = 0;
 let score = 0;
 let questions = [];
 let startTime;
@@ -8,31 +7,13 @@ let challengeTime = 60; // Speed round duration in seconds
 let synth = window.speechSynthesis;
 let selectedVoice = null;
 
-// Load only US English system voices
-function loadVoices() {
+// Load only one US English system voice (Hidden from GUI)
+function loadVoice() {
     let voices = synth.getVoices();
-    let voiceSelector = document.getElementById("voiceSelector");
-    voiceSelector.innerHTML = ""; // Clear existing options
-
-    // Filter for US English voices (Google or Windows)
-    let usVoices = voices.filter(voice => voice.lang === "en-US" && voice.name.includes("Google"));
-
-    if (usVoices.length === 0) {
-        setTimeout(loadVoices, 100); // Retry if voices aren't available
-        return;
-    }
-
-    let voice = usVoices[0]; // Use the first Google US voice found
-    selectedVoice = voice;
-
-    // Add the voice option to the dropdown
-    let option = document.createElement("option");
-    option.value = voice.name;
-    option.textContent = voice.name;
-    voiceSelector.appendChild(option);
+    selectedVoice = voices.find(voice => voice.lang === "en-US" && voice.name.includes("Google")) || voices[0];
 }
 
-// Speak the given question using the selected voice
+// Speak the given question
 function speakQuestion(question) {
     if (synth.speaking) synth.cancel();
 
@@ -52,27 +33,19 @@ function speakQuestion(question) {
     synth.speak(utterance);
 }
 
-// Generate 10 questions
+// Generate 10 questions, starting from basic and gradually increasing difficulty
 function generateQuestions() {
     let container = document.getElementById("questions-container");
     container.innerHTML = "";
     questions = [];
 
     let operation = document.getElementById("operation").value;
+    let range = getDifficultyRange(level); // Get number range based on difficulty
 
     for (let i = 1; i <= 10; i++) {
-        let num1, num2, questionText, answer;
-
-        if (level <= 5) {
-            num1 = Math.floor(Math.random() * 10) + 1;
-            num2 = Math.floor(Math.random() * 10) + 1;
-        } else if (level <= 10) {
-            num1 = Math.floor(Math.random() * 20) + 1;
-            num2 = Math.floor(Math.random() * 20) + 1;
-        } else {
-            num1 = Math.floor(Math.random() * 50) + 1;
-            num2 = Math.floor(Math.random() * 50) + 1;
-        }
+        let num1 = getRandomNumber(range.min, range.max);
+        let num2 = getRandomNumber(range.min, range.max);
+        let questionText, answer;
 
         switch (operation) {
             case "addition":
@@ -89,8 +62,8 @@ function generateQuestions() {
                 answer = num1 * num2;
                 break;
             case "division":
-                num2 = Math.floor(Math.random() * 10) + 1;
-                num1 = num2 * (Math.floor(Math.random() * 10) + 1);
+                num2 = getRandomNumber(1, 10);
+                num1 = num2 * getRandomNumber(1, 10);
                 questionText = `${num1} ÷ ${num2} =`;
                 answer = num1 / num2;
                 break;
@@ -107,6 +80,20 @@ function generateQuestions() {
             </div>
         `;
     }
+}
+
+// Determine number range based on difficulty level
+function getDifficultyRange(level) {
+    if (level <= 2) return { min: 1, max: 5 }; // Basic numbers (1-5)
+    if (level <= 4) return { min: 1, max: 10 }; // Small numbers (1-10)
+    if (level <= 7) return { min: 1, max: 20 }; // Medium numbers (1-20)
+    if (level <= 10) return { min: 10, max: 50 }; // Large numbers (10-50)
+    return { min: 20, max: 100 }; // Advanced (20-100)
+}
+
+// Get a random number within a range
+function getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 // Check answers and update score
@@ -128,12 +115,28 @@ function checkAnswers() {
             score -= 5;
         }
     }
+
     updateScore();
+    updateLevel(correctCount);
 }
 
 // Update score display
 function updateScore() {
     document.getElementById("score").textContent = `🏆 Score: ${score}`;
+}
+
+// Increase level if all answers are correct
+function updateLevel(correctCount) {
+    if (correctCount === 10) {
+        level++;
+        document.getElementById("level").textContent = `📈 Level: ${level}`;
+        alert(`🎉 You've reached Level ${level}!`);
+    }
+}
+
+// Load next 10 questions (advancing difficulty)
+function nextQuestions() {
+    generateQuestions();
 }
 
 // Start a 60-second challenge round
@@ -163,6 +166,7 @@ function restartGame() {
     level = 1;
     clearInterval(timerInterval);
     document.getElementById("timer").textContent = "⏳ Time: 0s";
+    document.getElementById("level").textContent = `📈 Level: ${level}`;
     generateQuestions();
     updateScore();
 }
@@ -173,18 +177,18 @@ function toggleDarkMode() {
     document.querySelector(".container").classList.toggle("dark-mode");
 }
 
-// Ensure voices are loaded when the page is ready
+// Ensure voice is loaded when the page is ready
 if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = loadVoices;
+    speechSynthesis.onvoiceschanged = loadVoice;
 }
 
 // Retry voice loading on page load in case it fails initially
 window.onload = function () {
-    setTimeout(loadVoices, 100);
+    setTimeout(loadVoice, 100);
 };
 
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
     generateQuestions();
-    loadVoices();
+    loadVoice();
 });
