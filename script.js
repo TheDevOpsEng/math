@@ -3,6 +3,7 @@ let score = 0;
 let questions = [];
 let startTime;
 let timerInterval;
+let timerStarted = false;
 let challengeTime = 60; // Speed round duration in seconds
 let synth = window.speechSynthesis;
 let selectedVoice = null;
@@ -31,6 +32,26 @@ function speakQuestion(question) {
 
     utterance.rate = 1.0;
     synth.speak(utterance);
+}
+
+// Function to start the timer when the user clicks inside an answer box
+function startTimer() {
+    if (!timerStarted) {
+        timerStarted = true;
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById("timer").textContent = `⏳ Time: ${elapsedTime}s`;
+        }, 1000);
+    }
+}
+
+// Attach event listener to all input boxes when questions are generated
+function attachInputListeners() {
+    let inputs = document.querySelectorAll("#questions-container input");
+    inputs.forEach(input => {
+        input.addEventListener("focus", startTimer);
+    });
 }
 
 // Generate 10 questions, starting from basic and gradually increasing difficulty
@@ -74,12 +95,13 @@ function generateQuestions() {
         container.innerHTML += `
             <div class="question-item">
                 ${questionText}
-                <input type="number" id="answer-${i}" inputmode="numeric" pattern="[0-9]*"
-                    onfocus="speakQuestion('${questionText}')">
+                <input type="number" id="answer-${i}" inputmode="numeric" pattern="[0-9]*">
                 <span id="result-${i}" class="result"></span>
             </div>
         `;
     }
+
+    attachInputListeners(); // Attach event listener after rendering new inputs
 }
 
 // Determine number range based on difficulty level
@@ -137,6 +159,7 @@ function updateLevel(correctCount) {
 // Load next 10 questions (advancing difficulty)
 function nextQuestions() {
     generateQuestions();
+    resetTimer();
 }
 
 // Start a 60-second challenge round
@@ -160,12 +183,18 @@ function startChallengeMode() {
     }, 1000);
 }
 
-// Reset game state
+// Reset timer
+function resetTimer() {
+    clearInterval(timerInterval);
+    timerStarted = false;
+    document.getElementById("timer").textContent = "⏳ Time: 0s";
+}
+
+// Restart game
 function restartGame() {
     score = 0;
     level = 1;
-    clearInterval(timerInterval);
-    document.getElementById("timer").textContent = "⏳ Time: 0s";
+    resetTimer();
     document.getElementById("level").textContent = `📈 Level: ${level}`;
     generateQuestions();
     updateScore();

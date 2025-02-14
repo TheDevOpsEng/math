@@ -8,35 +8,39 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Fun Math Practice 🏆</h1>
-        <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
-        <select id="voiceSelector" class="voice-selector">
-            <option value="">Loading Voices...</option>
-        </select>
+        <h1>🎯 Math Practice 🏆</h1>
+
         <div class="stats">
             <div id="timer">⏳ Time: 0s</div>
             <div id="streak">🔥 Streak: 0</div>
             <div id="score">🏆 Score: 0</div>
         </div>
-        <div class="level" id="level">📈 Level: 1</div>
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progress-bar"></div>
+
+        <!-- Level & Operation Selection -->
+        <div class="level-container">
+            <div id="level">📈 Level: 1</div>
+            <select id="operation" onchange="generateQuestions()">
+                <option value="addition">➕ Addition</option>
+                <option value="subtraction">➖ Subtraction</option>
+                <option value="multiplication">✖️ Multiplication</option>
+                <option value="division">➗ Division</option>
+            </select>
         </div>
-        <select id="operation" onchange="generateQuestions()">
-            <option value="addition">➕ Addition</option>
-            <option value="subtraction">➖ Subtraction</option>
-            <option value="multiplication">✖️ Multiplication</option>
-            <option value="division">➗ Division</option>
-        </select>
+
+        <!-- Questions Container -->
         <div id="questions-container"></div>
+
+        <!-- Buttons -->
         <div class="button-container">
             <button onclick="checkAnswers()">Check Answers</button>
             <button onclick="nextQuestions()" id="next-btn">Next 10 Questions</button>
             <button onclick="startChallengeMode()">⚡ Speed Round</button>
             <button onclick="restartGame()">🔄 Restart</button>
+            <button class="dark-mode-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
         </div>
     </div>
 
+    <!-- Sound Effects -->
     <audio id="correct-sound" src="https://www.soundjay.com/button/beep-07.mp3"></audio>
     <audio id="wrong-sound" src="https://www.soundjay.com/button/beep-08.mp3"></audio>
 
