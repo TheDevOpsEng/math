@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>Fun Math Practice</title>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -10,6 +10,7 @@
     <div class="container">
         <h1>🎯 Math Practice 🏆</h1>
 
+        <!-- Stats Section -->
         <div class="stats">
             <div id="timer">⏳ Time: 0s</div>
             <div id="streak">🔥 Streak: 0</div>
@@ -18,13 +19,15 @@
 
         <!-- Level & Operation Selection -->
         <div class="level-container">
-            <div id="level">📈 Level: 1</div>
-            <select id="operation" onchange="generateQuestions()">
-                <option value="addition">➕ Addition</option>
-                <option value="subtraction">➖ Subtraction</option>
-                <option value="multiplication">✖️ Multiplication</option>
-                <option value="division">➗ Division</option>
-            </select>
+            <label for="operation">
+                <span id="level">📈 Level: 1</span>
+                <select id="operation" onchange="generateQuestions()">
+                    <option value="addition">➕ Addition</option>
+                    <option value="subtraction">➖ Subtraction</option>
+                    <option value="multiplication">✖️ Multiplication</option>
+                    <option value="division">➗ Division</option>
+                </select>
+            </label>
         </div>
 
         <!-- Questions Container -->

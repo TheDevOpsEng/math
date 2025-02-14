@@ -15,9 +15,9 @@ body.dark-mode {
 /* 3D Effect for Main Container */
 .container {
     background: white;
-    max-width: 900px;
-    margin: 50px auto;
-    padding: 30px;
+    max-width: 90%;
+    margin: 20px auto;
+    padding: 20px;
     border-radius: 12px;
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2), -5px -5px 15px rgba(255, 255, 255, 0.8);
     transition: background 0.3s, color 0.3s, box-shadow 0.3s;
@@ -26,169 +26,114 @@ body.dark-mode {
 .container.dark-mode {
     background: #1e1e1e;
     color: #ffffff;
-    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5), -5px -5px 15px rgba(255, 255, 255, 0.1);
 }
 
+/* Stats Section */
 .stats {
     display: flex;
     justify-content: center;
     gap: 20px;
     font-size: 1.2em;
     font-weight: bold;
-    margin-bottom: 20px;
-    padding: 10px;
-    border-radius: 10px;
-    background: none !important; /* Removes background */
-    box-shadow: none !important;  /* Removes shadow */
+    margin-bottom: 10px;
 }
 
-
-/* Move Level & Dropdown Next to Each Other */
+/* Level & Dropdown Alignment */
 .level-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 10px;
     margin-bottom: 15px;
 }
 
-/* 3D Look for Dropdown */
+/* Dropdown Styling */
 #operation {
-    font-size: 1.1em;
-    padding: 8px;
+    font-size: 1em;
+    padding: 6px;
     border-radius: 8px;
     border: 2px solid #007bff;
-    background: linear-gradient(to bottom, #f8f9fa, #e0e0e0);
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2), -3px -3px 8px rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    transition: 0.3s;
+    background: white;
 }
 
-#operation:hover {
-    background: linear-gradient(to bottom, #e0e0e0, #cfcfcf);
-}
-
-#operation:focus {
-    border-color: #0056b3;
-    outline: none;
-}
-
-/* Dark Mode Styling for Dropdown */
 .dark-mode #operation {
-    background: linear-gradient(to bottom, #333, #444);
+    background: #333;
     color: white;
-    border: 2px solid #00bfff;
-}
-
-.dark-mode #operation:hover {
-    background: linear-gradient(to bottom, #444, #555);
 }
 
 /* Questions Section */
 #questions-container {
-    width: 80%;
+    width: 100%;
     max-width: 600px;
-    margin: 20px auto;
-    padding: 20px;
+    margin: 15px auto;
+    padding: 15px;
     background: white;
     border-radius: 12px;
-    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2), -5px -5px 15px rgba(255, 255, 255, 0.8);
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2), -3px -3px 10px rgba(255, 255, 255, 0.8);
 }
 
-/* Ensure Numbers & Questions Are Visible in Dark Mode */
-.dark-mode .question-item {
-    color: white !important;
-}
-
-/* Make Questions Container Dark in Dark Mode */
 .dark-mode #questions-container {
-    background: #222 !important;
-    color: white !important;
-    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5), -5px -5px 15px rgba(255, 255, 255, 0.1);
+    background: #222;
+    color: white;
 }
 
-/* Dark Mode Input Box Styling */
-.dark-mode .question-item input {
-    background: #444 !important;
-    color: white !important;
-    border: 2px solid #007bff;
-    box-shadow: inset -2px -2px 5px rgba(255, 255, 255, 0.1), inset 2px 2px 5px rgba(0, 0, 0, 0.5);
-}
-
-.dark-mode .question-item input:focus {
-    border-color: #00bfff;
-    background: #555;
-}
-
-/* Improve Question Items */
+/* Question & Input Box */
 .question-item {
-    font-size: 1.5em;
-    font-weight: bold;
+    font-size: 1.4em;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     margin: 10px 0;
 }
 
-/* Input Box Adjustments */
+/* Input Box */
 .question-item input {
     font-size: 1.2em;
     padding: 8px;
-    width: 75px;
+    width: 60px;
     text-align: center;
     border: 2px solid #ccc;
     border-radius: 8px;
-    outline: none;
-    transition: 0.3s;
-    box-shadow: inset -3px -3px 5px rgba(255, 255, 255, 0.7), inset 3px 3px 5px rgba(0, 0, 0, 0.2);
 }
 
-.question-item input:focus {
-    border-color: #007bff;
+/* Fix Input in Dark Mode */
+.dark-mode .question-item input {
+    background: #444;
+    color: white;
 }
 
-/* 3D Effect for Buttons */
+/* Buttons */
 .button-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-    padding: 10px;
+    gap: 10px;
+    margin-top: 15px;
 }
 
-/* 3D Button Style */
-.button-container button {
+/* 3D Button Look */
+button {
     font-size: 1em;
-    padding: 10px 18px;
+    padding: 8px 12px;
     background: linear-gradient(to bottom, #007bff, #0056b3);
     color: white;
-    border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2), -3px -3px 8px rgba(255, 255, 255, 0.8);
 }
 
-.button-container button:hover {
+.dark-mode button {
     background: linear-gradient(to bottom, #0056b3, #003d80);
-    transform: translateY(-2px);
 }
 
-.button-container button:active {
-    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.6);
-}
-
-/* 3D Progress Bar */
+/* Progress Bar */
 .progress-bar-container {
-    width: 50%;
+    width: 80%;
     max-width: 300px;
     background: linear-gradient(to bottom, #ddd, #ccc);
     border-radius: 12px;
-    overflow: hidden;
     margin: 10px auto;
-    box-shadow: inset -3px -3px 8px rgba(255, 255, 255, 0.8), inset 3px 3px 8px rgba(0, 0, 0, 0.1);
 }
 
 .progress-bar {
@@ -198,15 +143,22 @@ body.dark-mode {
     transition: width 0.5s ease-in-out;
 }
 
-/* Mobile Adjustments */
+/* Mobile Fixes */
 @media (max-width: 600px) {
     .level-container {
         flex-direction: column;
-        gap: 10px;
     }
 
     .question-item {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .button-container {
         flex-direction: column;
-        align-items: flex-start;
+    }
+
+    .question-item input {
+        width: 50px;
     }
 }
