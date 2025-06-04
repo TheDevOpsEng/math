@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>Fun Math Practice</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="description" content="Improve your math skills with fun and interactive practice sessions. Includes addition, subtraction, multiplication, and division.">
+    <meta property="og:title" content="Fun Math Practice">
+    <meta property="og:description" content="Improve your math skills with fun and interactive practice sessions. Includes addition, subtraction, multiplication, and division.">
+    <meta property="og:image" content="https://example.com/math-practice-thumbnail.png"> <!-- Replace with your image URL -->
+    <meta property="og:url" content="https://example.com/math-practice"> <!-- Replace with your app URL -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,41 +17,52 @@
         <h1>🎯 Math Practice 🏆</h1>
 
         <!-- Stats Section -->
-        <div class="stats">
+        <section class="stats" aria-label="Game Statistics">
             <div id="timer">⏳ Time: 0s</div>
             <div id="streak">🔥 Streak: 0</div>
             <div id="score">🏆 Score: 0</div>
-        </div>
+        </section>
 
         <!-- Level & Operation Selection -->
         <div class="level-container">
             <label for="operation">
                 <span id="level">📈 Level: 1</span>
-                <select id="operation" onchange="generateQuestions()">
+                <select id="operation" onchange="generateQuestions()" aria-label="Select Math Operation">
                     <option value="addition">➕ Addition</option>
                     <option value="subtraction">➖ Subtraction</option>
                     <option value="multiplication">✖️ Multiplication</option>
                     <option value="division">➗ Division</option>
                 </select>
             </label>
+            <button id="toggle-speech-btn" onclick="toggleSpeech()" aria-label="Toggle Speech Assistant">🔇 Toggle Speech</button>
         </div>
 
         <!-- Questions Container -->
         <div id="questions-container"></div>
 
         <!-- Buttons -->
-        <div class="button-container">
-            <button onclick="checkAnswers()">Check Answers</button>
-            <button onclick="nextQuestions()" id="next-btn">Next 10 Questions</button>
-            <button onclick="startChallengeMode()">⚡ Speed Round</button>
-            <button onclick="restartGame()">🔄 Restart</button>
-            <button class="dark-mode-btn" onclick="toggleDarkMode()">🌙 Dark Mode</button>
-        </div>
+        <nav class="button-container" aria-label="Game Controls">
+            <button onclick="checkAnswers()" aria-label="Check Answers">Check Answers</button>
+            <button onclick="nextQuestions()" id="next-btn" aria-label="Generate Next 10 Questions">Next 10 Questions</button>
+            <button onclick="startChallengeMode()" aria-label="Start Speed Round">⚡ Speed Round</button>
+            <button onclick="restartGame()" aria-label="Restart Game">🔄 Restart</button>
+            <button class="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle Dark Mode">🌙 Dark Mode</button>
+        </nav>
     </div>
 
     <!-- Sound Effects -->
     <audio id="correct-sound" src="https://www.soundjay.com/button/beep-07.mp3"></audio>
     <audio id="wrong-sound" src="https://www.soundjay.com/button/beep-08.mp3"></audio>
+    <audio id="celebration-sound" src="https://www.soundjay.com/misc/fanfare.mp3"></audio>
+
+    <!-- Custom Message Modal (NEW) -->
+    <div id="message-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-message"></p>
+            <button id="modal-ok-btn">OK</button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

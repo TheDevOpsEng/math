@@ -1,31 +1,74 @@
-body {
-    font-family: 'Arial', sans-serif;
-    text-align: center;
-    background: linear-gradient(to right, #f8f9fa, #e9ecef);
-    margin: 0;
-    padding: 0;
-    transition: background 0.3s, color 0.3s;
+:root {
+    /* Light Mode Variables */
+    --body-bg-start: #f8f9fa;
+    --body-bg-end: #e9ecef;
+    --container-bg: white;
+    --container-shadow-light: rgba(255, 255, 255, 0.8);
+    --container-shadow-dark: rgba(0, 0, 0, 0.2);
+    --questions-bg: white;
+    --questions-shadow-light: rgba(255, 255, 255, 0.8);
+    --questions-shadow-dark: rgba(0, 0, 0, 0.2);
+    --text-color: #333;
+    --input-border: #ccc;
+    --input-bg: white;
+    --dropdown-bg: white;
+    --dropdown-color: initial; /* Default text color */
+    --button-bg-start: #007bff;
+    --button-bg-end: #0056b3;
+    --button-hover-bg-start: #0056b3;
+    --button-hover-bg-end: #003d80;
+    --progress-bar-container-bg-start: #ddd;
+    --progress-bar-container-bg-end: #ccc;
+    --progress-bar-bg-start: #4caf50;
+    --progress-bar-bg-end: #2e7d32;
 }
 
 body.dark-mode {
-    background: #121212;
-    color: #ffffff;
+    /* Dark Mode Variables */
+    --body-bg-start: #121212;
+    --body-bg-end: #121212;
+    --container-bg: #1e1e1e;
+    --container-shadow-light: rgba(255, 255, 255, 0.05); /* Softer white shadow for dark mode */
+    --container-shadow-dark: rgba(0, 0, 0, 0.5); /* Stronger dark shadow */
+    --questions-bg: #222;
+    --questions-shadow-light: rgba(255, 255, 255, 0.05);
+    --questions-shadow-dark: rgba(0, 0, 0, 0.5);
+    --text-color: #ffffff;
+    --input-border: #555;
+    --input-bg: #444;
+    --dropdown-bg: #333;
+    --dropdown-color: white;
+    --button-bg-start: #0056b3;
+    --button-bg-end: #003d80;
+    --button-hover-bg-start: #003d80;
+    --button-hover-bg-end: #002a5a;
+    --progress-bar-container-bg-start: #333;
+    --progress-bar-container-bg-end: #444;
+    --progress-bar-bg-start: #2e7d32; /* Darker green for dark mode */
+    --progress-bar-bg-end: #1a5c20;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    background: linear-gradient(to right, var(--body-bg-start), var(--body-bg-end));
+    margin: 0;
+    padding: 0;
+    transition: background 0.3s, color 0.3s;
+    color: var(--text-color); /* Use variable for text color */
 }
 
 /* 3D Effect for Main Container */
 .container {
-    background: white;
+    background: var(--container-bg);
     max-width: 90%;
     margin: 20px auto;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2), -5px -5px 15px rgba(255, 255, 255, 0.8);
+    box-shadow: 5px 5px 15px var(--container-shadow-dark), -5px -5px 15px var(--container-shadow-light);
     transition: background 0.3s, color 0.3s, box-shadow 0.3s;
-}
-
-.container.dark-mode {
-    background: #1e1e1e;
-    color: #ffffff;
+    position: relative; /* Needed for absolute positioning of balloons */
+    overflow: hidden; /* Ensures balloons don't extend beyond container */
 }
 
 /* Stats Section */
@@ -45,6 +88,7 @@ body.dark-mode {
     justify-content: center;
     gap: 10px;
     margin-bottom: 15px;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
 }
 
 /* Dropdown Styling */
@@ -53,12 +97,8 @@ body.dark-mode {
     padding: 6px;
     border-radius: 8px;
     border: 2px solid #007bff;
-    background: white;
-}
-
-.dark-mode #operation {
-    background: #333;
-    color: white;
+    background: var(--dropdown-bg);
+    color: var(--dropdown-color);
 }
 
 /* Questions Section */
@@ -67,14 +107,9 @@ body.dark-mode {
     max-width: 600px;
     margin: 15px auto;
     padding: 15px;
-    background: white;
+    background: var(--questions-bg);
     border-radius: 12px;
-    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2), -3px -3px 10px rgba(255, 255, 255, 0.8);
-}
-
-.dark-mode #questions-container {
-    background: #222;
-    color: white;
+    box-shadow: 3px 3px 10px var(--questions-shadow-dark), -3px -3px 10px var(--questions-shadow-light);
 }
 
 /* Question & Input Box */
@@ -85,6 +120,12 @@ body.dark-mode {
     align-items: center;
     gap: 8px;
     margin: 10px 0;
+    position: relative; /* For balloon positioning relative to item */
+    z-index: 1; /* Ensure questions are above balloons normally */
+}
+
+.question-text {
+    cursor: pointer; /* Indicate it's clickable for speech */
 }
 
 /* Input Box */
@@ -93,14 +134,11 @@ body.dark-mode {
     padding: 8px;
     width: 60px;
     text-align: center;
-    border: 2px solid #ccc;
+    border: 2px solid var(--input-border); /* Use variable for input border */
     border-radius: 8px;
-}
-
-/* Fix Input in Dark Mode */
-.dark-mode .question-item input {
-    background: #444;
-    color: white;
+    background: var(--input-bg); /* Use variable for input background */
+    color: var(--text-color); /* Use variable for input text color */
+    transition: border-color 0.3s ease; /* Smooth transition for border color */
 }
 
 /* Buttons */
@@ -116,31 +154,173 @@ body.dark-mode {
 button {
     font-size: 1em;
     padding: 8px 12px;
-    background: linear-gradient(to bottom, #007bff, #0056b3);
+    background: linear-gradient(to bottom, var(--button-bg-start), var(--button-bg-end));
     color: white;
+    border: none; /* Removed default border */
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for 3D */
 }
 
-.dark-mode button {
-    background: linear-gradient(to bottom, #0056b3, #003d80);
+button:hover {
+    background: linear-gradient(to bottom, var(--button-hover-bg-start), var(--button-hover-bg-end));
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+}
+
+button:active {
+    transform: translateY(0); /* Press down effect */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Result text (Correct/Wrong) */
+.result {
+    font-weight: bold;
+    min-width: 80px; /* Ensure consistent spacing */
+    text-align: left;
 }
 
 /* Progress Bar */
 .progress-bar-container {
-    width: 80%;
-    max-width: 300px;
-    background: linear-gradient(to bottom, #ddd, #ccc);
+    width: 100%; /* Changed from 80% and max-width: 300px for full width within questions-container */
+    height: 20px;
+    background: linear-gradient(to bottom, var(--progress-bar-container-bg-start), var(--progress-bar-container-bg-end));
     border-radius: 12px;
     margin: 10px auto;
+    overflow: hidden; /* Ensures bar stays within rounded corners */
 }
 
 .progress-bar {
-    height: 20px;
+    height: 100%;
     width: 0%;
-    background: linear-gradient(to right, #4caf50, #2e7d32);
+    background: linear-gradient(to right, var(--progress-bar-bg-start), var(--progress-bar-bg-end));
     transition: width 0.5s ease-in-out;
+    border-radius: 12px; /* Match container border-radius */
+}
+
+/* Balloon Effect */
+.balloon {
+    position: absolute;
+    width: 60px; /* Increased size */
+    height: 80px; /* Increased size */
+    background-color: rgb(255, 99, 132); /* Default color */
+    border-radius: 50%;
+    bottom: -20px; /* Start slightly off-screen at the bottom */
+    /* 'left' will be set by JavaScript for randomness */
+    transform: translateX(-50%); /* Center horizontally relative to its left position */
+    animation: floatUp 3s forwards ease-out; /* Longer animation duration */
+    z-index: 0; /* Ensure balloons are behind other content */
+    opacity: 0.8;
+}
+
+.balloon::before { /* For the balloon's tail */
+    content: '';
+    position: absolute;
+    width: 2px; /* Slightly thicker tail */
+    height: 25px; /* Longer tail */
+    background-color: rgba(0, 0, 0, 0.3);
+    bottom: -25px; /* Adjust based on new height */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Different balloon colors */
+.balloon.color1 { background-color: #FF6384; } /* Reddish-pink */
+.balloon.color2 { background-color: #36A2EB; } /* Blue */
+.balloon.color3 { background-color: #FFCE56; } /* Yellow */
+.balloon.color4 { background-color: #4BC0C0; } /* Teal */
+.balloon.color5 { background-color: #9966FF; } /* Purple */
+
+
+@keyframes floatUp {
+    0% {
+        bottom: -20px;
+        opacity: 0.8;
+        transform: translateX(-50%) scale(1);
+    }
+    100% {
+        bottom: 100vh; /* Go all the way up the viewport */
+        opacity: 0;
+        transform: translateX(var(--balloon-end-x, 0)) scale(0.8) blur(3px); /* Use CSS variable for end X, slight shrink and blur */
+    }
+}
+
+/* Custom Message Modal Styling */
+.modal-overlay {
+    display: none; /* Corrected: Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px); /* Optional: blur background */
+}
+
+.modal-content {
+    background-color: var(--container-bg); /* Use theme background */
+    margin: auto;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    animation: fadeInScale 0.3s ease-out;
+    color: var(--text-color); /* Use theme text color */
+    border: 2px solid var(--button-bg-start); /* Accent border */
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 1.8em;
+    color: var(--button-bg-end); /* Accent color for title */
+}
+
+.modal-content p {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.modal-content button {
+    /* Inherits button styles, but we can override if needed */
+    padding: 10px 25px;
+    font-size: 1.1em;
+    min-width: 100px;
+}
+
+/* Dark mode adjustments for modal */
+body.dark-mode .modal-content {
+    background-color: var(--container-bg);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--button-bg-start);
+}
+
+body.dark-mode .modal-content h2 {
+    color: var(--button-hover-bg-end);
+}
+
+/* Modal Animation */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Mobile Fixes */
