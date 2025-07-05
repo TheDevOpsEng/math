@@ -6,24 +6,18 @@
     <title>Fun Math Practice</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <meta name="description" content="Improve your math skills with fun and interactive practice sessions. Includes addition, subtraction, multiplication, and division.">
-    <meta property="og:title" content="Fun Math Practice">
-    <meta property="og:description" content="Improve your math skills with fun and interactive practice sessions. Includes addition, subtraction, multiplication, and division.">
-    <meta property="og:image" content="https://example.com/math-practice-thumbnail.png"> <!-- Replace with your image URL -->
-    <meta property="og:url" content="https://example.com/math-practice"> <!-- Replace with your app URL -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <h1>🎯 Math Practice 🏆</h1>
 
-        <!-- Stats Section -->
         <section class="stats" aria-label="Game Statistics">
             <div id="timer">⏳ Time: 0s</div>
             <div id="streak">🔥 Streak: 0</div>
             <div id="score">🏆 Score: 0</div>
         </section>
 
-        <!-- Level & Operation Selection -->
         <div class="level-container">
             <label for="operation">
                 <span id="level">📈 Level: 1</span>
@@ -32,17 +26,32 @@
                     <option value="subtraction">➖ Subtraction</option>
                     <option value="multiplication">✖️ Multiplication</option>
                     <option value="division">➗ Division</option>
+                    <option value="fractions_add">½ Fractions (Add)</option>
+                    <option value="decimals">?. Decimals</option>
+                    <option value="percentages">% Percentages</option>
+                    <option value="pemdas">🧮 Order of Operations</option>
+                    <option value="custom">⚙️ Custom Quiz</option>
                 </select>
             </label>
             <button id="toggle-speech-btn" onclick="toggleSpeech()" aria-label="Toggle Speech Assistant">🔇 Toggle Speech</button>
         </div>
 
-        <!-- Questions Container -->
+        <div id="custom-quiz-options" class="custom-quiz-container" style="display: none;">
+            <h4>Select operations for your custom quiz:</h4>
+            <div class="checkbox-group">
+                <label><input type="checkbox" name="custom-op" value="addition" checked> ➕</label>
+                <label><input type="checkbox" name="custom-op" value="subtraction"> ➖</label>
+                <label><input type="checkbox" name="custom-op" value="multiplication"> ✖️</label>
+                <label><input type="checkbox" name="custom-op" value="division"> ➗</label>
+            </div>
+        </div>
+
         <div id="questions-container"></div>
 
-        <!-- Buttons -->
         <nav class="button-container" aria-label="Game Controls">
             <button onclick="checkAnswers()" aria-label="Check Answers">Check Answers</button>
+            <button onclick="provideHint()" id="hint-btn" aria-label="Get a Hint">💡 Get a Hint</button>
+            <button onclick="showAchievements()" id="achievements-btn" aria-label="View Achievements">🏅 Achievements</button>
             <button onclick="nextQuestions()" id="next-btn" aria-label="Generate Next 10 Questions">Next 10 Questions</button>
             <button onclick="startChallengeMode()" aria-label="Start Speed Round">⚡ Speed Round</button>
             <button onclick="restartGame()" aria-label="Restart Game">🔄 Restart</button>
@@ -50,16 +59,15 @@
         </nav>
     </div>
 
-    <!-- Sound Effects -->
     <audio id="correct-sound" src="https://www.soundjay.com/button/beep-07.mp3"></audio>
     <audio id="wrong-sound" src="https://www.soundjay.com/button/beep-08.mp3"></audio>
     <audio id="celebration-sound" src="https://www.soundjay.com/misc/fanfare.mp3"></audio>
 
-    <!-- Custom Message Modal (NEW) -->
     <div id="message-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modal-title"></h2>
-            <p id="modal-message"></p>
+            <p id="modal-message" style="white-space: pre-wrap;"></p>
+            <div id="modal-achievements-container"></div>
             <button id="modal-ok-btn">OK</button>
         </div>
     </div>

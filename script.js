@@ -2,209 +2,299 @@
 const NUM_QUESTIONS = 10;
 const SCORE_CORRECT = 10;
 const SCORE_WRONG = -5;
-const CHALLENGE_TIME = 60; // Speed round duration in seconds
+const CHALLENGE_TIME = 60;
 const BALLOON_COLORS = ['color1', 'color2', 'color3', 'color4', 'color5'];
 
-let level = 1;
-let score = 0;
-let streak = 0;
+// Game State Variables
+let level, score, streak;
 let questions = [];
-let startTime;
-let timerInterval;
-let timerStarted = false;
+let startTime, timerInterval, timerStarted;
 let challengeModeActive = false;
 let speechEnabled = true;
 
-// Audio elements
+// Achievements & Persistent State
+let unlockedAchievements;
+let totalProblemsSolved;
+
+// DOM Elements
 const correctSound = document.getElementById("correct-sound");
 const wrongSound = document.getElementById("wrong-sound");
 const celebrationSound = document.getElementById("celebration-sound");
-
-// Modal elements
 const messageModal = document.getElementById("message-modal");
 const modalTitle = document.getElementById("modal-title");
 const modalMessage = document.getElementById("modal-message");
 const modalOkBtn = document.getElementById("modal-ok-btn");
+const modalAchievementsContainer = document.getElementById("modal-achievements-container");
+const customQuizOptions = document.getElementById("custom-quiz-options");
 
-// Speech Synthesis setup
-let synth = window.speechSynthesis;
-let selectedVoice = null;
+// Achievements Definition
+const achievements = {
+    streakStarter: { name: "Streak Starter", icon: "🔥", description: "Get a streak of 10", unlocked: false, condition: () => streak >= 10 },
+    mathWhiz: { name: "Math Whiz", icon: "🧙‍♂️", description: "Reach Level 10", unlocked: false, condition: () => level >= 10 },
+    fractionFanatic: { name: "Fraction Fanatic", icon: "½", description: "Solve 20 fraction problems", unlocked: false, condition: () => totalProblemsSolved.fractions_add >= 20 },
+    decimalDynamo: { name: "Decimal Dynamo", icon: "🔢", description: "Solve 20 decimal problems", unlocked: false, condition: () => totalProblemsSolved.decimals >= 20 },
+    percentPro: { name: "Percent Pro", icon: "%", description: "Solve 20 percentage problems", unlocked: false, condition: () => totalProblemsSolved.percentages >= 20 },
+    speedDemon: { name: "Speed Demon", icon: "⚡", description: "Score over 500 in a Speed Round", unlocked: false, condition: (endScore) => challengeModeActive && endScore > 500 }
+};
 
-// Load only one US English system voice (Hidden from GUI)
-function loadVoice() {
-    let voices = synth.getVoices();
-    selectedVoice = voices.find(voice => voice.lang === "en-US" && voice.name.includes("Google")) || voices[0];
-    if (!selectedVoice) {
-        console.warn("No suitable en-US Google voice found. Falling back to default or no speech.");
-    }
+// --- Core Game Logic ---
+
+// Save and Load Progress from localStorage
+function saveProgress() {
+    const gameState = {
+        level: level,
+        score: score,
+        streak: streak,
+        unlockedAchievements: Array.from(unlockedAchievements),
+        totalProblemsSolved: totalProblemsSolved,
+    };
+    localStorage.setItem('mathGameState', JSON.stringify(gameState));
 }
 
-// Speak the given question
-function speakQuestion(question) {
-    if (!speechEnabled) return;
-
-    if (synth.speaking) synth.cancel();
-
-    let utterance = new SpeechSynthesisUtterance(question
-        .replace('+', 'plus')
-        .replace('-', 'minus')
-        .replace('×', 'times')
-        .replace('÷', 'divided by')
-        .replace('=', 'equals')
-    );
-
-    if (selectedVoice) {
-        utterance.voice = selectedVoice;
-    }
-
-    utterance.rate = 1.0;
-    synth.speak(utterance);
-}
-
-// Toggle Speech Assistant
-function toggleSpeech() {
-    speechEnabled = !speechEnabled;
-    const toggleBtn = document.getElementById("toggle-speech-btn");
-    if (speechEnabled) {
-        toggleBtn.textContent = "🔊 Speech On";
-        toggleBtn.setAttribute("aria-label", "Turn Speech Assistant Off");
-        speakQuestion("Speech assistant enabled.");
+function loadProgress() {
+    const savedState = localStorage.getItem('mathGameState');
+    if (savedState) {
+        const gameState = JSON.parse(savedState);
+        level = gameState.level;
+        score = gameState.score;
+        streak = gameState.streak;
+        unlockedAchievements = new Set(gameState.unlockedAchievements);
+        totalProblemsSolved = gameState.totalProblemsSolved || { fractions_add: 0, decimals: 0, percentages: 0 };
     } else {
-        toggleBtn.textContent = "🔇 Speech Off";
-        toggleBtn.setAttribute("aria-label", "Turn Speech Assistant On");
-        if (synth.speaking) synth.cancel();
+        // Default state for first-time players
+        level = 1;
+        score = 0;
+        streak = 0;
+        unlockedAchievements = new Set();
+        totalProblemsSolved = { fractions_add: 0, decimals: 0, percentages: 0 };
     }
+    updateUI();
 }
 
-// Function to start the timer when the user clicks inside an answer box
-function startTimer() {
-    if (!timerStarted && !challengeModeActive) {
-        timerStarted = true;
-        startTime = Date.now();
-        timerInterval = setInterval(() => {
-            let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById("timer").textContent = `⏳ Time: ${elapsedTime}s`;
-        }, 1000);
-    }
+// Update all UI elements with current game state
+function updateUI() {
+    document.getElementById("level").textContent = `📈 Level: ${level}`;
+    document.getElementById("score").textContent = `🏆 Score: ${score}`;
+    document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
 }
 
-// Attach event listener to questions container using event delegation
-function attachInputListeners() {
-    const questionsContainer = document.getElementById("questions-container");
-
-    // Start timer on input focus
-    questionsContainer.addEventListener("focusin", (event) => {
-        if (event.target.tagName === 'INPUT' && event.target.type === 'number') {
-            startTimer();
-        }
-    });
-
-    // Auto-check in challenge mode and improve UX
-    questionsContainer.addEventListener("input", (event) => {
-        if (challengeModeActive && event.target.tagName === 'INPUT' && event.target.type === 'number') {
-            const inputId = event.target.id;
-            const questionIndex = parseInt(inputId.replace('answer-', '')) - 1;
-            const userAnswer = event.target.value;
-            const correctAnswer = questions[questionIndex].answer;
-            const resultSpan = document.getElementById(`result-${questionIndex + 1}`);
-            const inputField = event.target;
-
-            if (userAnswer !== "") {
-                if (parseFloat(userAnswer) === correctAnswer) {
-                    resultSpan.textContent = "✅";
-                    resultSpan.style.color = "green";
-                    inputField.style.borderColor = "green";
-                } else {
-                    resultSpan.textContent = "❌";
-                    resultSpan.style.color = "red";
-                    inputField.style.borderColor = "red";
-                }
-            } else {
-                resultSpan.textContent = "";
-                inputField.style.borderColor = "var(--input-border)"; // Reset to default via CSS variable
-            }
-        }
-    });
-
-    // Allow 'Enter' key to check answers
-    questionsContainer.addEventListener("keydown", (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault(); // Prevent default form submission behavior
-            checkAnswers();
-        }
-    });
-}
-
-// Generate questions
-function generateQuestions(questionList = null) {
+// Generate Questions (with new topics)
+function generateQuestions() {
     let container = document.getElementById("questions-container");
-    container.innerHTML = ""; // Clear existing questions
-    
-    // Check if the review button exists before trying to remove it
-    const reviewBtn = document.getElementById("review-mistakes-btn");
-    if (reviewBtn) {
-        reviewBtn.remove();
-    }
-    
-    // If a specific list of questions is provided (for review), use it
-    // Otherwise, generate new questions based on level and operation
-    questions = questionList ? questionList : [];
+    container.innerHTML = "";
+    questions = []; // Clear previous questions
 
-    if (!questionList) { // Generate new questions
-        let operation = document.getElementById("operation").value;
-        let range = getDifficultyRange(level);
+    let operation = document.getElementById("operation").value;
+    customQuizOptions.style.display = (operation === 'custom') ? 'block' : 'none';
+    let range = getDifficultyRange(level);
 
-        for (let i = 1; i <= NUM_QUESTIONS; i++) {
-            let num1 = getRandomNumber(range.min, range.max);
-            let num2 = getRandomNumber(range.min, range.max);
-            let questionText, answer;
-
-            switch (operation) {
-                case "addition":
-                    questionText = `${num1} + ${num2} =`;
-                    answer = num1 + num2;
-                    break;
-                case "subtraction":
-                    if (num1 < num2) [num1, num2] = [num2, num1];
-                    questionText = `${num1} - ${num2} =`;
-                    answer = num1 - num2;
-                    break;
-                case "multiplication":
-                    questionText = `${num1} × ${num2} =`;
-                    answer = num1 * num2;
-                    break;
-                case "division":
-                    num2 = getRandomNumber(1, 10);
-                    num1 = num2 * getRandomNumber(1, 10); // Ensure num1 is a multiple of num2 for whole numbers
-                    questionText = `${num1} ÷ ${num2} =`;
-                    answer = num1 / num2;
-                    break;
-            }
-            questions.push({ questionText, answer, answeredCorrectly: false });
+    for (let i = 0; i < NUM_QUESTIONS; i++) {
+        let questionData = {};
+        let num1 = getRandomNumber(range.min, range.max);
+        let num2 = getRandomNumber(range.min, range.max);
+        
+        // Determine operation for this specific question
+        let currentOperation = operation;
+        if (operation === 'custom') {
+            const customOps = Array.from(document.querySelectorAll('input[name="custom-op"]:checked')).map(el => el.value);
+            currentOperation = customOps.length > 0 ? customOps[Math.floor(Math.random() * customOps.length)] : 'addition';
         }
-    }
 
+        switch (currentOperation) {
+            case "addition":
+                questionData = { questionText: `${num1} + ${num2} =`, answer: num1 + num2, hint: "Basic addition." };
+                break;
+            case "subtraction":
+                if (num1 < num2) [num1, num2] = [num2, num1];
+                questionData = { questionText: `${num1} - ${num2} =`, answer: num1 - num2, hint: "Is borrowing necessary?" };
+                break;
+            case "multiplication":
+                questionData = { questionText: `${num1} × ${num2} =`, answer: num1 * num2, hint: `What is ${num1} added to itself ${num2} times?` };
+                break;
+            case "division":
+                num2 = getRandomNumber(1, 10);
+                num1 = num2 * getRandomNumber(1, 10);
+                questionData = { questionText: `${num1} ÷ ${num2} =`, answer: num1 / num2, hint: `How many times does ${num2} fit into ${num1}?` };
+                break;
+            case "fractions_add":
+                let den1 = getRandomNumber(2, 10);
+                let den2 = den1; // Keep common denominator for simplicity
+                let frac_num1 = getRandomNumber(1, den1 - 1);
+                let frac_num2 = getRandomNumber(1, den2 - 1);
+                let correctNum = frac_num1 + frac_num2;
+                let commonDivisor = gcd(correctNum, den1);
+                questionData = {
+                    questionText: `${frac_num1}/${den1} + ${frac_num2}/${den2} =`,
+                    answer: `${correctNum / commonDivisor}/${den1 / commonDivisor}`,
+                    hint: `The denominators are the same. Just add the numerators! The answer should be in 'numerator/denominator' format.`,
+                    type: 'fractions_add'
+                };
+                break;
+            case "decimals":
+                let dec1 = (getRandomNumber(1, 999) / 100);
+                let dec2 = (getRandomNumber(1, 999) / 100);
+                questionData = {
+                    questionText: `${dec1} + ${dec2} =`,
+                    answer: parseFloat((dec1 + dec2).toFixed(2)),
+                    hint: "Line up the decimal points and add.",
+                    type: 'decimals'
+                };
+                break;
+            case "percentages":
+                let percent = getRandomNumber(1, 10) * 10;
+                let whole = getRandomNumber(2, 20) * 10;
+                questionData = {
+                    questionText: `What is ${percent}% of ${whole}?`,
+                    answer: (percent / 100) * whole,
+                    hint: "Convert the percentage to a decimal first (e.g., 50% = 0.50).",
+                    type: 'percentages'
+                };
+                break;
+            case "pemdas":
+                const op1 = ['+', '-'][getRandomNumber(0, 1)];
+                const op2 = ['×', '÷'][getRandomNumber(0, 1)];
+                let term3 = getRandomNumber(2, 10);
+                let term2 = op2 === '÷' ? term3 * getRandomNumber(1, 5) : getRandomNumber(2, 10);
+                let term1 = getRandomNumber(1, 20);
+                let expr = `${term1} ${op1} ${term2} ${op2} ${term3}`;
+                let finalAnswer = eval(expr.replace('×', '*').replace('÷', '/'));
+                let step1Result = op2 === '×' ? term2 * term3 : term2 / term3;
+                let explanation = `Remember PEMDAS/BODMAS (multiply/divide before add/subtract):\n\n1. First, calculate ${term2} ${op2} ${term3} = ${step1Result}\n\n2. Then, calculate ${term1} ${op1} ${step1Result} = ${finalAnswer}`;
+                questionData = {
+                    questionText: `${expr} =`,
+                    answer: finalAnswer,
+                    hint: "Multiplication or Division comes before Addition or Subtraction.",
+                    type: 'pemdas',
+                    explanation: explanation
+                };
+                break;
+            default: // Default to addition
+                questionData = { questionText: `${num1} + ${num2} =`, answer: num1 + num2, hint: "Basic addition." };
+                break;
+        }
+        questions.push(questionData);
+    }
+    renderQuestions();
+}
+
+function renderQuestions() {
+    let container = document.getElementById("questions-container");
     let htmlContent = `<div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>`;
     questions.forEach((q, index) => {
+        const inputType = typeof q.answer === 'string' && q.answer.includes('/') ? 'text' : 'number';
         htmlContent += `
             <div class="question-item">
                 <span class="question-text" onclick="speakQuestion('${q.questionText.replace(/'/g, "\\'")}')">${q.questionText}</span>
-                <input type="number" id="answer-${index + 1}" inputmode="numeric" pattern="[0-9]*" class="user-answer">
+                <input type="${inputType}" id="answer-${index + 1}" class="user-answer" placeholder="?">
                 <span id="result-${index + 1}" class="result"></span>
             </div>
         `;
     });
     container.innerHTML = htmlContent;
 
-    // Focus on the first input field if available
     const firstInput = document.getElementById("answer-1");
     if (firstInput) {
         firstInput.focus();
     }
-    updateProgressBar(0); // Reset progress bar
+    updateProgressBar(0);
 }
 
-// Determine number range based on difficulty level
+
+// Check Answers (with enhanced explanations)
+function checkAnswers() {
+    let correctCount = 0;
+    let answeredQuestions = 0;
+
+    questions.forEach((q, i) => {
+        let userAnswer = document.getElementById(`answer-${i + 1}`).value.trim();
+        let resultSpan = document.getElementById(`result-${i + 1}`);
+        let inputField = document.getElementById(`answer-${i + 1}`);
+        if (userAnswer === "") return;
+
+        answeredQuestions++;
+
+        const isFraction = typeof q.answer === 'string' && q.answer.includes('/');
+        const processedUserAnswer = isFraction ? userAnswer : parseFloat(userAnswer);
+        const isCorrect = processedUserAnswer === q.answer;
+
+        if (isCorrect) {
+            resultSpan.textContent = "✅ Correct!";
+            resultSpan.style.color = "green";
+            inputField.style.borderColor = "green";
+            score += SCORE_CORRECT;
+            streak++;
+            correctCount++;
+            if (q.type && totalProblemsSolved.hasOwnProperty(q.type)) {
+                totalProblemsSolved[q.type]++;
+            }
+            correctSound.play();
+            createBalloon();
+        } else {
+            resultSpan.textContent = `❌ Wrong! (${q.answer})`;
+            resultSpan.style.color = "red";
+            inputField.style.borderColor = "red";
+            score = Math.max(0, score + SCORE_WRONG);
+            streak = 0;
+            wrongSound.play();
+            // Use the modal for detailed explanations if available
+            if (q.explanation) {
+                showMessage("Here's a breakdown:", q.explanation);
+            }
+        }
+    });
+
+    updateProgressBar(answeredQuestions);
+    updateLevel(correctCount);
+    updateUI();
+    checkAchievements();
+    saveProgress();
+}
+
+// Achievements Logic
+function checkAchievements(endScore = null) {
+    for (const id in achievements) {
+        if (!unlockedAchievements.has(id)) {
+            let conditionMet = (id === 'speedDemon' && endScore !== null) ? achievements[id].condition(endScore) : achievements[id].condition();
+            if (conditionMet) {
+                unlockedAchievements.add(id);
+                showMessage("🏆 Achievement Unlocked!", `${achievements[id].name}\n${achievements[id].description}`);
+            }
+        }
+    }
+}
+
+function showAchievements() {
+    modalTitle.textContent = "Your Achievements";
+    modalMessage.textContent = "";
+    modalAchievementsContainer.innerHTML = "";
+
+    for (const id in achievements) {
+        const isUnlocked = unlockedAchievements.has(id);
+        const badge = document.createElement('div');
+        badge.className = 'achievement-badge';
+        if (!isUnlocked) badge.classList.add('locked');
+
+        badge.innerHTML = `
+            <div class="icon">${achievements[id].icon}</div>
+            <h5>${achievements[id].name}</h5>
+            <p>${achievements[id].description}</p>
+        `;
+        modalAchievementsContainer.appendChild(badge);
+    }
+    messageModal.style.display = 'flex';
+}
+
+// Update level if all answers are correct
+function updateLevel(correctCount) {
+    if (correctCount === NUM_QUESTIONS && !challengeModeActive) {
+        level++;
+        showMessage(`🌟 Amazing!`, `You've mastered Level ${level - 1} and reached Level ${level}! Keep going!`);
+        celebrationSound.play();
+    }
+}
+
+// --- Helper & Utility Functions ---
+
 function getDifficultyRange(level) {
     if (level <= 2) return { min: 1, max: 5 };
     if (level <= 4) return { min: 1, max: 10 };
@@ -213,12 +303,14 @@ function getDifficultyRange(level) {
     return { min: 20, max: 100 };
 }
 
-// Get a random number within a range
 function getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Update progress bar
+function gcd(a, b) {
+    return b === 0 ? a : gcd(b, a % b);
+}
+
 function updateProgressBar(answeredCount) {
     const progressBar = document.getElementById("progress-bar");
     if (progressBar) {
@@ -227,292 +319,146 @@ function updateProgressBar(answeredCount) {
     }
 }
 
-// Function to create and animate a balloon
 function createBalloon() {
     const containerElement = document.querySelector('.container');
     const balloon = document.createElement('div');
-    balloon.classList.add('balloon');
-    balloon.classList.add(BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)]);
-
-    // Randomize starting X position
-    const startX = Math.random() * 100; // 0% to 100%
-    balloon.style.left = `${startX}%`;
-
-    // Randomize end X position for horizontal drift
-    const endX = (Math.random() * 200) - 100; // -100px to +100px drift
-    balloon.style.setProperty('--balloon-end-x', `${endX}px`);
-
+    balloon.classList.add('balloon', BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)]);
+    balloon.style.left = `${Math.random() * 100}%`;
+    balloon.style.setProperty('--balloon-end-x', `${(Math.random() * 200) - 100}px`);
     containerElement.appendChild(balloon);
-
-    // Play a lighter sound for individual balloons (optional, but good for UX)
-    // For now, we'll just play the correctSound as it's already defined for correct answers.
-    // If a new, lighter balloon sound is desired, add it to index.html and define it here.
-    
-    // Remove balloon after animation completes
-    balloon.addEventListener('animationend', () => {
-        balloon.remove();
-    });
+    balloon.addEventListener('animationend', () => balloon.remove());
 }
 
-
-// Function to display custom message modal
 function showMessage(title, message, onDismissCallback = null) {
     modalTitle.textContent = title;
     modalMessage.textContent = message;
-    messageModal.style.display = 'flex'; // Show the modal
-
-    // Define the event listener function
+    modalAchievementsContainer.innerHTML = "";
+    messageModal.style.display = 'flex';
     const dismissHandler = () => {
-        messageModal.style.display = 'none'; // Hide the modal
-        modalOkBtn.removeEventListener('click', dismissHandler); // Remove itself after use
-        if (onDismissCallback) {
-            onDismissCallback(); // Execute callback if provided
-        }
+        messageModal.style.display = 'none';
+        modalOkBtn.removeEventListener('click', dismissHandler);
+        if (onDismissCallback) onDismissCallback();
     };
-
-    // Attach the event listener
     modalOkBtn.addEventListener('click', dismissHandler);
 }
 
-
-// Check answers and update score
-function checkAnswers() {
-    let correctCount = 0;
-    let answeredQuestions = 0;
-    let hasIncorrectAnswers = false;
-
-    for (let i = 0; i < questions.length; i++) {
-        let userAnswer = document.getElementById(`answer-${i + 1}`).value;
-        let correctAnswer = questions[i].answer;
-        let resultSpan = document.getElementById(`result-${i + 1}`);
-        let inputField = document.getElementById(`answer-${i + 1}`);
-        // No longer need questionItemElement for balloon as it's appended to container
-
-        // Only process if user has provided an input
-        if (userAnswer === "") {
-            resultSpan.textContent = "❓ Needs Answer";
-            resultSpan.style.color = "orange";
-            inputField.style.borderColor = "orange";
-            questions[i].answeredCorrectly = false; // Mark as not correctly answered
-            continue;
-        }
-
-        answeredQuestions++; // Count question as attempted
-
-        if (parseFloat(userAnswer) === correctAnswer) {
-            resultSpan.textContent = "✅ Correct!";
-            resultSpan.style.color = "green";
-            inputField.style.borderColor = "green";
-            correctCount++;
-            score += SCORE_CORRECT;
-            streak++;
-            correctSound.currentTime = 0; // Rewind to start
-            correctSound.play().catch(e => console.log("Sound play failed:", e)); // Play sound, catch errors
-            createBalloon(); // Trigger balloon effect
-            questions[i].answeredCorrectly = true;
-        } else {
-            resultSpan.textContent = `❌ Wrong! (${correctAnswer})`;
-            resultSpan.style.color = "red";
-            inputField.style.borderColor = "red";
-            score = Math.max(0, score + SCORE_WRONG);
-            streak = 0;
-            wrongSound.currentTime = 0; // Rewind to start
-            wrongSound.play().catch(e => console.log("Sound play failed:", e)); // Play sound, catch errors
-            questions[i].answeredCorrectly = false;
-            hasIncorrectAnswers = true;
-        }
-    }
-
-    updateScore();
-    updateStreak();
-    updateLevel(correctCount);
-    updateProgressBar(answeredQuestions); // Update progress bar based on attempted questions
-
-    // Play celebration sound if all correct in normal mode
-    if (correctCount === NUM_QUESTIONS && !challengeModeActive) {
-        celebrationSound.currentTime = 0;
-        celebrationSound.play().catch(e => console.log("Celebration sound play failed:", e));
-    }
-
-
-    // Add Review Mistakes button if there are incorrect answers
-    if (hasIncorrectAnswers) {
-        const buttonContainer = document.querySelector(".button-container");
-        let reviewBtn = document.getElementById("review-mistakes-btn");
-        if (!reviewBtn) {
-            reviewBtn = document.createElement("button");
-            reviewBtn.textContent = "🔄 Review Mistakes";
-            reviewBtn.id = "review-mistakes-btn";
-            reviewBtn.onclick = reviewMistakes;
-            buttonContainer.appendChild(reviewBtn);
-        }
+function provideHint() {
+    const firstUnansweredIndex = questions.findIndex((q, i) => document.getElementById(`answer-${i + 1}`).value === "");
+    if (firstUnansweredIndex !== -1) {
+        const hint = questions[firstUnansweredIndex].hint;
+        showMessage("💡 Here's a Hint!", hint);
+        score = Math.max(0, score - 2);
+        updateUI();
+        saveProgress();
     } else {
-        const reviewBtn = document.getElementById("review-mistakes-btn");
-        if (reviewBtn) {
-            reviewBtn.remove();
-        }
+        showMessage("Way to go!", "You've answered all the questions! No hints needed here.");
     }
 }
 
-// Update score display
-function updateScore() {
-    document.getElementById("score").textContent = `🏆 Score: ${score}`;
-}
+// --- Game Mode Functions ---
 
-// Update streak display
-function updateStreak() {
-    document.getElementById("streak").textContent = `🔥 Streak: ${streak}`;
-}
-
-// Increase level if all answers are correct
-function updateLevel(correctCount) {
-    if (correctCount === NUM_QUESTIONS && !challengeModeActive) { // Only level up in normal mode
-        level++;
-        document.getElementById("level").textContent = `📈 Level: ${level}`;
-        // Replaced alert with custom modal
-        showMessage(`🌟 Amazing!`, `You've mastered Level ${level - 1} and reached Level ${level}! Keep going!`);
-    }
-}
-
-// Load next 10 questions (advancing difficulty)
 function nextQuestions() {
     clearInterval(timerInterval);
     timerStarted = false;
+    document.getElementById("timer").textContent = "⏳ Time: 0s";
     generateQuestions();
-    resetTimerDisplay(); // Reset display for clarity
-    document.querySelectorAll('.user-answer').forEach(input => input.style.borderColor = 'var(--input-border)');
-    document.querySelectorAll('.result').forEach(span => span.textContent = '');
 }
 
-// Start a 60-second challenge round
 function startChallengeMode() {
     if (challengeModeActive) return;
-
     challengeModeActive = true;
-    // Replaced alert with custom modal
     showMessage("⚡ Speed Round Started!", "Solve as many as possible in 60 seconds!", () => {
-        score = 0; // Reset score and streak for challenge
+        score = 0;
         streak = 0;
-        updateScore();
-        updateStreak();
-        generateQuestions(); // Generate initial questions for challenge
-        resetTimerDisplay();
-        startTime = Date.now();
+        updateUI();
+        generateQuestions();
         let timeRemaining = CHALLENGE_TIME;
-
         document.getElementById("timer").textContent = `⏳ Time: ${timeRemaining}s`;
-        document.getElementById("next-btn").disabled = true;
-        document.getElementById("operation").disabled = true;
-        const reviewBtn = document.getElementById("review-mistakes-btn");
-        if (reviewBtn) {
-            reviewBtn.remove();
-        }
-
         timerInterval = setInterval(() => {
-            timeRemaining = CHALLENGE_TIME - Math.floor((Date.now() - startTime) / 1000);
+            timeRemaining--;
             document.getElementById("timer").textContent = `⏳ Time: ${timeRemaining}s`;
-
             if (timeRemaining <= 0) {
                 clearInterval(timerInterval);
                 challengeModeActive = false;
-                checkAnswers(); // Check remaining answers at the end of challenge
-                // Replaced alert with custom modal
-                showMessage(`⏰ Time's Up!`, `Your final score in the Speed Round: ${score}`, () => {
-                    restartGame();
-                });
+                checkAnswers(); // Final check
+                checkAchievements(score); // Check final score for achievement
+                saveProgress();
+                showMessage(`⏰ Time's Up!`, `Your final score in the Speed Round: ${score}`, restartGame);
             }
         }, 1000);
     });
 }
 
-// Reset timer display
-function resetTimerDisplay() {
+function restartGame() {
+    // Reset all stats but keep achievements and problem counts
+    level = 1;
+    score = 0;
+    streak = 0;
+    challengeModeActive = false;
     clearInterval(timerInterval);
     timerStarted = false;
     document.getElementById("timer").textContent = "⏳ Time: 0s";
-}
-
-// Restart game
-function restartGame() {
-    score = 0;
-    level = 1;
-    streak = 0;
-    challengeModeActive = false;
-    resetTimerDisplay();
-    document.getElementById("level").textContent = `📈 Level: ${level}`;
+    saveProgress();
+    updateUI();
     generateQuestions();
-    updateScore();
-    updateStreak();
-    document.getElementById("next-btn").disabled = false;
-    document.getElementById("operation").disabled = false;
-    document.querySelectorAll('.user-answer').forEach(input => input.style.borderColor = 'var(--input-border)');
-    document.querySelectorAll('.result').forEach(span => span.textContent = '');
 }
 
-// New: Review Mistakes
-function reviewMistakes() {
-    const incorrectQuestions = questions.filter(q => !q.answeredCorrectly);
-    if (incorrectQuestions.length > 0) {
-        // Shuffle the incorrect questions for variety
-        for (let i = incorrectQuestions.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [incorrectQuestions[i], incorrectQuestions[j]] = [incorrectQuestions[j], incorrectQuestions[i]];
+// --- Speech Synthesis ---
+
+function loadVoice() {
+    let voices = speechSynthesis.getVoices();
+    selectedVoice = voices.find(voice => voice.lang === "en-US" && voice.name.includes("Google")) || voices[0];
+}
+
+function toggleSpeech() {
+    speechEnabled = !speechEnabled;
+    const toggleBtn = document.getElementById("toggle-speech-btn");
+    toggleBtn.textContent = speechEnabled ? "🔊 Speech On" : "🔇 Speech Off";
+    if (!speechEnabled) speechSynthesis.cancel();
+}
+
+function speakQuestion(question) {
+    if (!speechEnabled) return;
+    speechSynthesis.cancel();
+    let utterance = new SpeechSynthesisUtterance(question
+        .replace('+', 'plus').replace('-', 'minus').replace('×', 'times')
+        .replace('÷', 'divided by').replace('=', 'equals').replace('/', 'over'));
+    if (selectedVoice) utterance.voice = selectedVoice;
+    speechSynthesis.speak(utterance);
+}
+
+// --- Initialization ---
+
+function attachInputListeners() {
+    const questionsContainer = document.getElementById("questions-container");
+    questionsContainer.addEventListener("focusin", (event) => {
+        if (event.target.tagName === 'INPUT' && !challengeModeActive) startTimer();
+    });
+    questionsContainer.addEventListener("keydown", (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            checkAnswers();
         }
-        // Replaced alert with custom modal
-        showMessage(`Time to review!`, `You have ${incorrectQuestions.length} mistakes to practice.`, () => {
-            generateQuestions(incorrectQuestions); // Regenerate only incorrect questions
-            document.getElementById("review-mistakes-btn").remove(); // Remove button after clicking
-            resetTimerDisplay(); // Reset timer for the review session
-            document.querySelectorAll('.user-answer').forEach(input => input.style.borderColor = 'var(--input-border)');
-            document.querySelectorAll('.result').forEach(span => span.textContent = '');
-        });
-    } else {
-        // Replaced alert with custom modal
-        showMessage("Great Job!", "You got all questions correct! No mistakes to review.", () => {
-            const reviewBtn = document.getElementById("review-mistakes-btn");
-            if (reviewBtn) {
-                reviewBtn.remove();
-            }
-            nextQuestions(); // Move to next set if all correct
-        });
-    }
+    });
 }
 
-// Toggle Dark Mode
 function toggleDarkMode() {
     document.body.classList.toggle("dark-mode");
-    document.querySelector(".container").classList.toggle("dark-mode");
-    // Persist dark mode preference
-    if (document.body.classList.contains("dark-mode")) {
-        localStorage.setItem("darkMode", "enabled");
-    } else {
-        localStorage.setItem("darkMode", "disabled");
-    }
+    localStorage.setItem("darkMode", document.body.classList.contains("dark-mode") ? "enabled" : "disabled");
 }
 
-// Apply dark mode based on saved preference
 function applyDarkModePreference() {
     if (localStorage.getItem("darkMode") === "enabled") {
         document.body.classList.add("dark-mode");
-        document.querySelector(".container").classList.add("dark-mode");
     }
 }
 
-// Ensure voice is loaded when the page is ready
-if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = loadVoice;
-}
-
-// Retry voice loading on page load in case it fails initially
-window.onload = function () {
-    setTimeout(loadVoice, 100);
-};
-
-// Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
     applyDarkModePreference();
+    loadProgress();
     generateQuestions();
-    loadVoice();
     attachInputListeners();
-    document.getElementById("toggle-speech-btn").textContent = speechEnabled ? "🔊 Speech On" : "🔇 Speech Off"; // Set initial button text
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoice;
+    }
 });
