@@ -26,6 +26,9 @@ const modalMessage = document.getElementById("modal-message");
 const modalOkBtn = document.getElementById("modal-ok-btn");
 const modalAchievementsContainer = document.getElementById("modal-achievements-container");
 const customQuizOptions = document.getElementById("custom-quiz-options");
+// --- NEW: Define the toggle button here for easier access ---
+const toggleSpeechBtn = document.getElementById("toggle-speech-btn");
+
 
 // Achievements Definition
 const achievements = {
@@ -93,7 +96,6 @@ function generateQuestions() {
         let num1 = getRandomNumber(range.min, range.max);
         let num2 = getRandomNumber(range.min, range.max);
         
-        // Determine operation for this specific question
         let currentOperation = operation;
         if (operation === 'custom') {
             const customOps = Array.from(document.querySelectorAll('input[name="custom-op"]:checked')).map(el => el.value);
@@ -118,7 +120,7 @@ function generateQuestions() {
                 break;
             case "fractions_add":
                 let den1 = getRandomNumber(2, 10);
-                let den2 = den1; // Keep common denominator for simplicity
+                let den2 = den1; 
                 let frac_num1 = getRandomNumber(1, den1 - 1);
                 let frac_num2 = getRandomNumber(1, den2 - 1);
                 let correctNum = frac_num1 + frac_num2;
@@ -168,7 +170,7 @@ function generateQuestions() {
                     explanation: explanation
                 };
                 break;
-            default: // Default to addition
+            default: 
                 questionData = { questionText: `${num1} + ${num2} =`, answer: num1 + num2, hint: "Basic addition." };
                 break;
         }
@@ -199,8 +201,6 @@ function renderQuestions() {
     updateProgressBar(0);
 }
 
-
-// Check Answers (with enhanced explanations)
 function checkAnswers() {
     let correctCount = 0;
     let answeredQuestions = 0;
@@ -236,7 +236,6 @@ function checkAnswers() {
             score = Math.max(0, score + SCORE_WRONG);
             streak = 0;
             wrongSound.play();
-            // Use the modal for detailed explanations if available
             if (q.explanation) {
                 showMessage("Here's a breakdown:", q.explanation);
             }
@@ -250,7 +249,6 @@ function checkAnswers() {
     saveProgress();
 }
 
-// Achievements Logic
 function checkAchievements(endScore = null) {
     for (const id in achievements) {
         if (!unlockedAchievements.has(id)) {
@@ -284,7 +282,6 @@ function showAchievements() {
     messageModal.style.display = 'flex';
 }
 
-// Update level if all answers are correct
 function updateLevel(correctCount) {
     if (correctCount === NUM_QUESTIONS && !challengeModeActive) {
         level++;
@@ -292,8 +289,6 @@ function updateLevel(correctCount) {
         celebrationSound.play();
     }
 }
-
-// --- Helper & Utility Functions ---
 
 function getDifficultyRange(level) {
     if (level <= 2) return { min: 1, max: 5 };
@@ -355,8 +350,6 @@ function provideHint() {
     }
 }
 
-// --- Game Mode Functions ---
-
 function nextQuestions() {
     clearInterval(timerInterval);
     timerStarted = false;
@@ -380,8 +373,8 @@ function startChallengeMode() {
             if (timeRemaining <= 0) {
                 clearInterval(timerInterval);
                 challengeModeActive = false;
-                checkAnswers(); // Final check
-                checkAchievements(score); // Check final score for achievement
+                checkAnswers();
+                checkAchievements(score);
                 saveProgress();
                 showMessage(`⏰ Time's Up!`, `Your final score in the Speed Round: ${score}`, restartGame);
             }
@@ -390,7 +383,6 @@ function startChallengeMode() {
 }
 
 function restartGame() {
-    // Reset all stats but keep achievements and problem counts
     level = 1;
     score = 0;
     streak = 0;
@@ -404,27 +396,36 @@ function restartGame() {
 }
 
 // --- Speech Synthesis ---
+let synth = window.speechSynthesis;
+let selectedVoice = null;
 
 function loadVoice() {
-    let voices = speechSynthesis.getVoices();
+    let voices = synth.getVoices();
     selectedVoice = voices.find(voice => voice.lang === "en-US" && voice.name.includes("Google")) || voices[0];
 }
 
+// --- UPDATED: This function is more robust ---
 function toggleSpeech() {
     speechEnabled = !speechEnabled;
-    const toggleBtn = document.getElementById("toggle-speech-btn");
-    toggleBtn.textContent = speechEnabled ? "🔊 Speech On" : "🔇 Speech Off";
-    if (!speechEnabled) speechSynthesis.cancel();
+    if (speechEnabled) {
+        toggleSpeechBtn.textContent = "🔊 Speech On";
+        toggleSpeechBtn.setAttribute("aria-label", "Turn Speech Assistant Off");
+        speakQuestion("Speech assistant enabled.");
+    } else {
+        toggleSpeechBtn.textContent = "🔇 Speech Off";
+        toggleSpeechBtn.setAttribute("aria-label", "Turn Speech Assistant On");
+        synth.cancel(); // Stop any currently speaking utterance
+    }
 }
 
 function speakQuestion(question) {
-    if (!speechEnabled) return;
-    speechSynthesis.cancel();
-    let utterance = new SpeechSynthesisUtterance(question
+    if (!speechEnabled || !synth) return;
+    synth.cancel();
+    const utterance = new SpeechSynthesisUtterance(question
         .replace('+', 'plus').replace('-', 'minus').replace('×', 'times')
         .replace('÷', 'divided by').replace('=', 'equals').replace('/', 'over'));
     if (selectedVoice) utterance.voice = selectedVoice;
-    speechSynthesis.speak(utterance);
+    synth.speak(utterance);
 }
 
 // --- Initialization ---
@@ -460,5 +461,14 @@ document.addEventListener("DOMContentLoaded", () => {
     attachInputListeners();
     if (speechSynthesis.onvoiceschanged !== undefined) {
         speechSynthesis.onvoiceschanged = loadVoice;
+    }
+
+    // --- FIX: Set initial button state on page load ---
+    if (speechEnabled) {
+        toggleSpeechBtn.textContent = "🔊 Speech On";
+        toggleSpeechBtn.setAttribute("aria-label", "Turn Speech Assistant Off");
+    } else {
+        toggleSpeechBtn.textContent = "🔇 Speech Off";
+        toggleSpeechBtn.setAttribute("aria-label", "Turn Speech Assistant On");
     }
 });
