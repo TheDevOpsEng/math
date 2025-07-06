@@ -351,3 +351,7 @@ body {
     color: #888;
     margin: 0;
 }
+
+audio {
+    display: none;
+}

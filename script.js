@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- SOUNDS ---
     let correctSounds = [];
     let wrongSounds = [];
+    let isAudioUnlocked = false; // --- NEW: Track if audio is ready for mobile ---
 
     // --- DOM ELEMENTS ---
     const questionTextEl = document.getElementById("question-text");
@@ -61,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function handleNumpadClick(e) {
+        unlockAudio(); // --- NEW: Unlock audio on first interaction ---
         const key = e.target.closest(".numpad-btn")?.dataset.key;
         if (!key) return;
         if (key === "backspace") {
@@ -141,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function checkAnswer() {
+        unlockAudio(); // --- NEW: Unlock audio on first interaction ---
         if (currentAnswer === "") return;
         const question = questions[currentQuestionIndex];
         const isCorrect = parseFloat(currentAnswer) === question.answer;
@@ -217,26 +220,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     // --- FEATURES (HINTS, ACHIEVEMENTS, MODAL, DARK MODE, SOUNDS) ---
+    
+    // --- NEW: Function to unlock audio on mobile ---
+    function unlockAudio() {
+        if (isAudioUnlocked) return;
+        
+        const allSounds = [...correctSounds, ...wrongSounds];
+        allSounds.forEach(sound => {
+            sound.play().catch(() => {}); // Play and immediately pause to prime it
+            sound.pause();
+            sound.currentTime = 0;
+        });
+        
+        isAudioUnlocked = true;
+    }
+
     function playRandomSound(soundArray) {
-        // Defensive check: If the array is empty, do nothing.
-        // This prevents errors if the querySelectorAll in initializeGame finds no elements.
         if (!soundArray || soundArray.length === 0) {
             return;
         }
 
-        const sound = soundArray[Math.floor(Math.random() * soundArray.length)];
-        
-        // Stop the sound if it's already playing, then rewind.
-        sound.pause();
-        sound.currentTime = 0;
-        
-        // Play the sound and add error handling for browser policy issues.
-        sound.play().catch(error => {
-            console.error("Audio playback failed:", error);
+        // --- NEW: Stop all other sounds before playing a new one ---
+        [...correctSounds, ...wrongSounds].forEach(s => {
+            s.pause();
+            s.currentTime = 0;
+        });
+
+        // Use a clone of the audio element for playback
+        const original = soundArray[Math.floor(Math.random() * soundArray.length)];
+        const clone = original.cloneNode(); // Clone ensures no interference
+        clone.volume = 1.0;
+        clone.play().catch(error => {
+            console.error("Audio playback failed. User may need to interact with the page first.", error);
         });
     }
 
-    function provideHint() {
+    function provideHint() {    
         const question = questions[currentQuestionIndex];
         if (question && question.hint) {
             showMessage("💡 Hint", question.hint);
