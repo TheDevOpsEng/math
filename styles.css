@@ -1,293 +1,278 @@
+/* --- Root Variables for Theming --- */
 :root {
-    /* Light Mode Variables */
-    --body-bg-start: #f8f9fa;
+    /* Light Mode */
+    --body-bg-start: #f4f7f9;
     --body-bg-end: #e9ecef;
     --container-bg: white;
-    --container-shadow-light: rgba(255, 255, 255, 0.8);
-    --container-shadow-dark: rgba(0, 0, 0, 0.2);
-    --questions-bg: white;
-    --questions-shadow-light: rgba(255, 255, 255, 0.8);
-    --questions-shadow-dark: rgba(0, 0, 0, 0.2);
-    --text-color: #333;
-    --input-border: #ccc;
-    --input-bg: white;
-    --dropdown-bg: white;
-    --dropdown-color: initial; /* Default text color */
-    --button-bg-start: #007bff;
-    --button-bg-end: #0056b3;
-    --button-hover-bg-start: #0056b3;
-    --button-hover-bg-end: #003d80;
-    --progress-bar-container-bg-start: #ddd;
-    --progress-bar-container-bg-end: #ccc;
-    --progress-bar-bg-start: #4caf50;
-    --progress-bar-bg-end: #2e7d32;
+    --text-color: #212529;
+    --accent-color: #007bff;
+    --accent-color-hover: #0056b3;
+    --correct-color: #28a745;
+    --incorrect-color: #dc3545;
+    --numpad-bg: #e9ecef;
+    --numpad-function-bg: #d1d5db;
+    --border-color: #dee2e6;
+    --shadow-color: rgba(0, 0, 0, 0.1);
 }
 
 body.dark-mode {
-    /* Dark Mode Variables */
+    /* Dark Mode */
     --body-bg-start: #121212;
-    --body-bg-end: #121212;
+    --body-bg-end: #1a1a1a;
     --container-bg: #1e1e1e;
-    --container-shadow-light: rgba(255, 255, 255, 0.05); /* Softer white shadow for dark mode */
-    --container-shadow-dark: rgba(0, 0, 0, 0.5); /* Stronger dark shadow */
-    --questions-bg: #222;
-    --questions-shadow-light: rgba(255, 255, 255, 0.05);
-    --questions-shadow-dark: rgba(0, 0, 0, 0.5);
-    --text-color: #ffffff;
-    --input-border: #555;
-    --input-bg: #444;
-    --dropdown-bg: #333;
-    --dropdown-color: white;
-    --button-bg-start: #0056b3;
-    --button-bg-end: #003d80;
-    --button-hover-bg-start: #003d80;
-    --button-hover-bg-end: #002a5a;
-    --progress-bar-container-bg-start: #333;
-    --progress-bar-container-bg-end: #444;
-    --progress-bar-bg-start: #2e7d32; /* Darker green for dark mode */
-    --progress-bar-bg-end: #1a5c20;
+    --text-color: #f8f9fa;
+    --accent-color: #0d6efd;
+    --accent-color-hover: #0b5ed7;
+    --numpad-bg: #343a40;
+    --numpad-function-bg: #495057;
+    --border-color: #495057;
+    --shadow-color: rgba(0, 0, 0, 0.5);
 }
 
+/* --- Main Layout --- */
 body {
-    font-family: 'Arial', sans-serif;
-    text-align: center;
-    background: linear-gradient(to right, var(--body-bg-start), var(--body-bg-end));
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(to bottom, var(--body-bg-start), var(--body-bg-end));
+    color: var(--text-color);
     margin: 0;
-    padding: 0;
-    transition: background 0.3s, color 0.3s;
-    color: var(--text-color); /* Use variable for text color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
-/* 3D Effect for Main Container */
 .container {
-    background: var(--container-bg);
-    max-width: 90%;
-    margin: 20px auto;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 5px 5px 15px var(--container-shadow-dark), -5px -5px 15px var(--container-shadow-light);
-    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
-    position: relative; /* Needed for absolute positioning of balloons */
-    overflow: hidden; /* Ensures balloons don't extend beyond container */
-}
-
-/* Stats Section */
-.stats {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-/* Level & Dropdown Alignment */
-.level-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-}
-
-/* Dropdown Styling */
-#operation {
-    font-size: 1em;
-    padding: 6px;
-    border-radius: 8px;
-    border: 2px solid #007bff;
-    background: var(--dropdown-bg);
-    color: var(--dropdown-color);
-}
-
-/* Custom Quiz Container Styling */
-.custom-quiz-container {
-    padding: 10px;
-    margin: 10px auto;
-    background-color: rgba(0, 0, 0, 0.05);
-    border-radius: 8px;
-    max-width: 600px;
-}
-
-body.dark-mode .custom-quiz-container {
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.custom-quiz-container h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.checkbox-group {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
-
-.checkbox-group label {
-    font-size: 1.5em;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.checkbox-group input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-}
-
-/* Questions Section */
-#questions-container {
     width: 100%;
-    max-width: 600px;
-    margin: 15px auto;
-    padding: 15px;
-    background: var(--questions-bg);
-    border-radius: 12px;
-    box-shadow: 3px 3px 10px var(--questions-shadow-dark), -3px -3px 10px var(--questions-shadow-light);
+    max-width: 420px;
+    background: var(--container-bg);
+    padding: 20px;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px var(--shadow-color);
+    display: flex;
+    flex-direction: column;
+    height: 95vh;
+    max-height: 850px;
 }
 
-/* Question & Input Box */
-.question-item {
-    font-size: 1.4em;
+/* --- Header & Stats --- */
+.header {
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+}
+.header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    margin: 10px 0;
-    position: relative; /* For balloon positioning relative to item */
-    z-index: 1; /* Ensure questions are above balloons normally */
+    margin-bottom: 15px;
 }
-
-.question-text {
-    cursor: pointer; /* Indicate it's clickable for speech */
-}
-
-/* Input Box */
-.question-item input {
+.header-top h1 {
+    margin: 0;
     font-size: 1.2em;
-    padding: 8px;
-    width: 60px;
-    text-align: center;
-    border: 2px solid var(--input-border); /* Use variable for input border */
-    border-radius: 8px;
-    background: var(--input-bg); /* Use variable for input background */
-    color: var(--text-color); /* Use variable for input text color */
-    transition: border-color 0.3s ease; /* Smooth transition for border color */
+}
+.stats {
+    display: flex;
+    justify-content: space-around;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+.level-container, .menu-container {
+    flex: 1;
+}
+.level-container {
+    text-align: left;
+    font-weight: 500;
+}
+.menu-container {
+    text-align: right;
+    position: relative;
 }
 
-/* Buttons */
-.button-container {
+/* --- Operations --- */
+.operations-container {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
     margin-top: 15px;
 }
-
-/* 3D Button Look */
-button {
-    font-size: 1em;
-    padding: 8px 12px;
-    background: linear-gradient(to bottom, var(--button-bg-start), var(--button-bg-end));
-    color: white;
-    border: none; /* Removed default border */
-    border-radius: 8px;
+.op-btn {
+    background-color: var(--numpad-bg);
+    border: 2px solid var(--numpad-bg);
+    color: var(--text-color);
+    border-radius: 10px;
+    font-size: 1.5em;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for 3D */
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+.op-btn:hover {
+    border-color: var(--accent-color);
+}
+.op-btn.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
 }
 
-button:hover {
-    background: linear-gradient(to bottom, var(--button-hover-bg-start), var(--button-hover-bg-end));
-    transform: translateY(-2px); /* Slight lift effect */
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+/* --- Main Game Area --- */
+.game-area {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    padding-top: 15px;
 }
 
-button:active {
-    transform: translateY(0); /* Press down effect */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* Result text (Correct/Wrong) */
-.result {
-    font-weight: bold;
-    min-width: 80px; /* Ensure consistent spacing */
-    text-align: left;
-}
-
-/* Progress Bar */
 .progress-bar-container {
     width: 100%;
-    height: 20px;
-    background: linear-gradient(to bottom, var(--progress-bar-container-bg-start), var(--progress-bar-container-bg-end));
-    border-radius: 12px;
-    margin: 10px auto;
-    overflow: hidden; /* Ensures bar stays within rounded corners */
+    height: 8px;
+    background-color: var(--numpad-bg);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
 }
-
 .progress-bar {
     height: 100%;
     width: 0%;
-    background: linear-gradient(to right, var(--progress-bar-bg-start), var(--progress-bar-bg-end));
-    transition: width 0.5s ease-in-out;
-    border-radius: 12px; /* Match container border-radius */
+    background-color: var(--accent-color);
+    border-radius: 4px;
+    transition: width 0.3s ease-in-out;
 }
 
-/* Balloon Effect */
-.balloon {
+.question-card {
+    background-color: var(--numpad-bg);
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
+    flex-grow: 1;
+    margin-bottom: 20px;
+}
+#question-text {
+    font-size: 2.8em;
+    font-weight: bold;
+    line-height: 1.2;
+    margin-bottom: 15px;
+}
+.answer-display {
+    font-size: 2.2em;
+    font-weight: 500;
+    color: var(--text-color);
+    min-height: 45px;
+    border-bottom: 3px solid var(--border-color);
+    display: inline-block;
+    padding: 0 15px;
+    letter-spacing: 2px;
+}
+
+.question-card.correct {
+    background-color: var(--correct-color);
+    color: white;
+}
+.question-card.incorrect {
+    background-color: var(--incorrect-color);
+    color: white;
+}
+.question-card.correct .answer-display, .question-card.incorrect .answer-display {
+    color: white;
+    border-bottom-color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- Input Area --- */
+.input-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.numpad-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.numpad-btn {
+    font-size: 1.8em;
+    padding: 18px 0;
+    border-radius: 12px;
+    border: none;
+    background-color: var(--numpad-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+.numpad-btn:active {
+    transform: scale(0.95);
+}
+.numpad-btn.function {
+    background-color: var(--numpad-function-bg);
+}
+.submit-btn-main {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 18px;
+    border-radius: 12px;
+    border: none;
+    background-color: var(--accent-color);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.submit-btn-main:hover {
+    background-color: var(--accent-color-hover);
+}
+
+/* --- Menu --- */
+.menu-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 1.5em;
+}
+.menu-dropdown {
+    display: none;
     position: absolute;
-    width: 60px;
-    height: 80px;
-    background-color: rgb(255, 99, 132); /* Default color */
-    border-radius: 50%;
-    bottom: -20px; /* Start slightly off-screen at the bottom */
-    transform: translateX(-50%); /* Center horizontally relative to its left position */
-    animation: floatUp 3s forwards ease-out; /* Longer animation duration */
-    z-index: 0; /* Ensure balloons are behind other content */
-    opacity: 0.8;
+    top: 100%;
+    right: 0;
+    background: var(--container-bg);
+    border-radius: 10px;
+    box-shadow: 0 5px 20px var(--shadow-color);
+    border: 1px solid var(--border-color);
+    width: 220px;
+    z-index: 10;
+    padding: 8px;
+    margin-top: 10px;
+}
+.menu-dropdown.show {
+    display: block;
+}
+.menu-dropdown .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 12px;
+    color: var(--text-color);
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 1em;
+}
+.menu-dropdown .menu-item:hover {
+    background-color: var(--numpad-bg);
 }
 
-.balloon::before { /* For the balloon's tail */
-    content: '';
-    position: absolute;
-    width: 2px;
-    height: 25px;
-    background-color: rgba(0, 0, 0, 0.3);
-    bottom: -25px; /* Adjust based on new height */
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Different balloon colors */
-.balloon.color1 { background-color: #FF6384; } /* Reddish-pink */
-.balloon.color2 { background-color: #36A2EB; } /* Blue */
-.balloon.color3 { background-color: #FFCE56; } /* Yellow */
-.balloon.color4 { background-color: #4BC0C0; } /* Teal */
-.balloon.color5 { background-color: #9966FF; } /* Purple */
-
-
-@keyframes floatUp {
-    0% {
-        bottom: -20px;
-        opacity: 0.8;
-        transform: translateX(-50%) scale(1);
-    }
-    100% {
-        bottom: 100vh; /* Go all the way up the viewport */
-        opacity: 0;
-        transform: translateX(var(--balloon-end-x, 0)) scale(0.8) blur(3px); /* Use CSS variable for end X */
-    }
-}
-
-/* Custom Message Modal Styling */
+/* --- Modal & Achievements --- */
 .modal-overlay {
     display: none;
     position: fixed;
@@ -296,136 +281,73 @@ button:disabled {
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto;
     background-color: rgba(0, 0, 0, 0.6);
     justify-content: center;
     align-items: center;
     backdrop-filter: blur(5px);
 }
-
 .modal-content {
     background-color: var(--container-bg);
-    margin: auto;
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     width: 90%;
     max-width: 400px;
     text-align: center;
-    animation: fadeInScale 0.3s ease-out;
-    color: var(--text-color);
-    border: 2px solid var(--button-bg-start);
 }
-
-.modal-content h2 {
+#modal-title {
     margin-top: 0;
-    font-size: 1.8em;
-    color: var(--button-bg-end);
+    font-size: 1.5em;
 }
-
-.modal-content p {
+#modal-message {
     font-size: 1.1em;
-    margin-bottom: 20px;
     line-height: 1.5;
+    margin-bottom: 25px;
 }
-
-.modal-content button {
-    padding: 10px 25px;
+/* --- UPDATED: Modernized OK Button --- */
+#modal-ok-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 30px;
     font-size: 1.1em;
-    min-width: 100px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s;
+}
+#modal-ok-btn:hover {
+    background-color: var(--accent-color-hover);
 }
 
-/* Dark mode adjustments for modal */
-body.dark-mode .modal-content {
-    background-color: var(--container-bg);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-    border: 2px solid var(--button-bg-start);
-}
-
-body.dark-mode .modal-content h2 {
-    color: var(--button-hover-bg-end);
-}
-
-/* Modal Animation */
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-/* Achievement Display Styling */
 #modal-achievements-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 15px;
     margin-top: 20px;
-    max-height: 40vh;
-    overflow-y: auto;
+    margin-bottom: 25px;
 }
-
 .achievement-badge {
-    background: var(--container-bg);
-    border: 2px solid var(--button-bg-start);
+    background: var(--numpad-bg);
+    border: 2px solid var(--border-color);
     border-radius: 10px;
     padding: 10px;
     width: 150px;
-    text-align: center;
-    box-shadow: 2px 2px 5px var(--container-shadow-dark);
-    transition: transform 0.2s;
 }
-
-.achievement-badge:hover {
-    transform: scale(1.05);
-}
-
 .achievement-badge.locked {
-    filter: grayscale(1) opacity(0.6);
-    border-color: #888;
+    filter: grayscale(1) opacity(0.7);
 }
-
 .achievement-badge .icon {
-    font-size: 2.5em;
+    font-size: 2em;
 }
-
 .achievement-badge h5 {
     margin: 5px 0;
     font-size: 1em;
-    color: var(--text-color);
 }
-
 .achievement-badge p {
     font-size: 0.8em;
     color: #888;
     margin: 0;
-}
-
-body.dark-mode .achievement-badge.locked {
-    border-color: #555;
-}
-
-
-/* Mobile Fixes */
-@media (max-width: 600px) {
-    .level-container {
-        flex-direction: column;
-    }
-
-    .question-item {
-        flex-direction: row;
-        justify-content: space-between;
-    }
-
-    .button-container {
-        flex-direction: column;
-    }
-
-    .question-item input {
-        width: 50px;
-    }
 }

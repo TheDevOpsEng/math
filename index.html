@@ -5,64 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title>Fun Math Practice</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <meta name="description" content="Improve your math skills with fun and interactive practice sessions. Includes addition, subtraction, multiplication, and division.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1>🎯 Math Practice 🏆</h1>
-
-        <section class="stats" aria-label="Game Statistics">
-            <div id="timer">⏳ Time: 0s</div>
-            <div id="streak">🔥 Streak: 0</div>
-            <div id="score">🏆 Score: 0</div>
-        </section>
-
-        <div class="level-container">
-            <label for="operation">
-                <span id="level">📈 Level: 1</span>
-                <select id="operation" onchange="generateQuestions()" aria-label="Select Math Operation">
-                    <option value="addition">➕ Addition</option>
-                    <option value="subtraction">➖ Subtraction</option>
-                    <option value="multiplication">✖️ Multiplication</option>
-                    <option value="division">➗ Division</option>
-                    <option value="fractions_add">½ Fractions (Add)</option>
-                    <option value="decimals">?. Decimals</option>
-                    <option value="percentages">% Percentages</option>
-                    <option value="pemdas">🧮 Order of Operations</option>
-                    <option value="custom">⚙️ Custom Quiz</option>
-                </select>
-            </label>
-            <button id="toggle-speech-btn" onclick="toggleSpeech()" aria-label="Toggle Speech Assistant">🔇 Toggle Speech</button>
-        </div>
-
-        <div id="custom-quiz-options" class="custom-quiz-container" style="display: none;">
-            <h4>Select operations for your custom quiz:</h4>
-            <div class="checkbox-group">
-                <label><input type="checkbox" name="custom-op" value="addition" checked> ➕</label>
-                <label><input type="checkbox" name="custom-op" value="subtraction"> ➖</label>
-                <label><input type="checkbox" name="custom-op" value="multiplication"> ✖️</label>
-                <label><input type="checkbox" name="custom-op" value="division"> ➗</label>
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div class="level-container">
+                    <span id="level">📈 Level: 1</span>
+                </div>
+                <h1>🎯 Math Practice 🏆</h1>
+                <div class="menu-container">
+                    <button class="menu-btn" id="menu-toggle-btn"><i class="fas fa-bars"></i></button>
+                    <div class="menu-dropdown" id="menu-dropdown">
+                        <button class="menu-item" id="achievements-btn">🏅 Achievements</button>
+                        <button class="menu-item" id="hint-btn">💡 Get a Hint</button>
+                        <button class="menu-item" id="restart-btn">🔄 Restart</button>
+                        <button class="menu-item" id="dark-mode-btn">🌙 Dark Mode</button>
+                    </div>
+                </div>
+            </div>
+            <div class="stats">
+                <div id="timer">⏳ 0s</div>
+                <div id="streak">🔥 0</div>
+                <div id="score">🏆 0</div>
+            </div>
+            <div class="operations-container" id="operations-container">
+                <button class="op-btn active" data-operation="addition">➕</button>
+                <button class="op-btn" data-operation="subtraction">➖</button>
+                <button class="op-btn" data-operation="multiplication">✖️</button>
+                <button class="op-btn" data-operation="division">➗</button>
+                <button class="op-btn" data-operation="pemdas">🧮</button>
             </div>
         </div>
 
-        <div id="questions-container"></div>
-
-        <nav class="button-container" aria-label="Game Controls">
-            <button onclick="checkAnswers()" aria-label="Check Answers">Check Answers</button>
-            <button onclick="provideHint()" id="hint-btn" aria-label="Get a Hint">💡 Get a Hint</button>
-            <button onclick="showAchievements()" id="achievements-btn" aria-label="View Achievements">🏅 Achievements</button>
-            <button onclick="nextQuestions()" id="next-btn" aria-label="Generate Next 10 Questions">Next 10 Questions</button>
-            <button onclick="startChallengeMode()" aria-label="Start Speed Round">⚡ Speed Round</button>
-            <button onclick="restartGame()" aria-label="Restart Game">🔄 Restart</button>
-            <button class="dark-mode-btn" onclick="toggleDarkMode()" aria-label="Toggle Dark Mode">🌙 Dark Mode</button>
-        </nav>
+        <!-- Main Game Area -->
+        <div class="game-area">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="question-card" id="question-card">
+                <span id="question-text"></span>
+                <div class="answer-display" id="answer-display"></div>
+            </div>
+            <div class="input-area">
+                <div class="numpad-container" id="numpad">
+                    <button class="numpad-btn" data-key="1">1</button>
+                    <button class="numpad-btn" data-key="2">2</button>
+                    <button class="numpad-btn" data-key="3">3</button>
+                    <button class="numpad-btn" data-key="4">4</button>
+                    <button class="numpad-btn" data-key="5">5</button>
+                    <button class="numpad-btn" data-key="6">6</button>
+                    <button class="numpad-btn" data-key="7">7</button>
+                    <button class="numpad-btn" data-key="8">8</button>
+                    <button class="numpad-btn" data-key="9">9</button>
+                    <button class="numpad-btn function" data-key=".">.</button>
+                    <button class="numpad-btn" data-key="0">0</button>
+                    <button class="numpad-btn function" data-key="backspace"><i class="fas fa-backspace"></i></button>
+                </div>
+                <button class="submit-btn-main" id="submit-btn">Check</button>
+            </div>
+        </div>
     </div>
 
-    <audio id="correct-sound" src="https://www.soundjay.com/button/beep-07.mp3"></audio>
-    <audio id="wrong-sound" src="https://www.soundjay.com/button/beep-08.mp3"></audio>
-    <audio id="celebration-sound" src="https://www.soundjay.com/misc/fanfare.mp3"></audio>
-
+    <!-- Modal -->
     <div id="message-modal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modal-title"></h2>
@@ -72,6 +80,15 @@
         </div>
     </div>
 
+    <!-- Sound Effects -->
+    <audio class="correct-sound" src="https://www.soundjay.com/button/beep-07.mp3"></audio>
+    <audio class="correct-sound" src="https://www.soundjay.com/human/applause-01.mp3"></audio>
+    <audio class="correct-sound" src="https://www.soundjay.com/human/cheering-2.mp3"></audio>
+
+    <audio class="wrong-sound" src="https://www.soundjay.com/button/beep-08.mp3"></audio>
+    <audio class="wrong-sound" src="https://www.soundjay.com/button/buzz-1.mp3"></audio>
+    <audio class="wrong-sound" src="https://www.soundjay.com/misc/fail-trombone-01.mp3"></audio>
+    
     <script src="script.js"></script>
 </body>
 </html>
