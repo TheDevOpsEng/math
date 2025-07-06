@@ -183,11 +183,13 @@ function renderQuestions() {
     let container = document.getElementById("questions-container");
     let htmlContent = `<div class="progress-bar-container"><div class="progress-bar" id="progress-bar"></div></div>`;
     questions.forEach((q, index) => {
-        const inputType = typeof q.answer === 'string' && q.answer.includes('/') ? 'text' : 'number';
+        // --- UPDATED: Use type="tel" and inputmode="numeric" for better mobile experience ---
+        const inputType = typeof q.answer === 'string' && q.answer.includes('/') ? 'text' : 'tel';
+        const inputMode = inputType === 'tel' ? 'numeric' : 'text';
         htmlContent += `
             <div class="question-item">
                 <span class="question-text" onclick="speakQuestion('${q.questionText.replace(/'/g, "\\'")}')">${q.questionText}</span>
-                <input type="${inputType}" id="answer-${index + 1}" class="user-answer" placeholder="?">
+                <input type="${inputType}" inputmode="${inputMode}" id="answer-${index + 1}" class="user-answer" placeholder="?">
                 <span id="result-${index + 1}" class="result"></span>
             </div>
         `;
