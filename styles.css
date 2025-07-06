@@ -272,6 +272,11 @@ body {
     background-color: var(--numpad-bg);
 }
 
+#mute-btn {
+    font-weight: bold;
+    color: var(--accent-color);
+}
+
 /* --- Modal & Achievements --- */
 .modal-overlay {
     display: none;

@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let correctSounds = [];
     let wrongSounds = [];
     let isAudioUnlocked = false; // --- NEW: Track if audio is ready for mobile ---
+    let isMuted = false;
 
     // --- DOM ELEMENTS ---
     const questionTextEl = document.getElementById("question-text");
@@ -46,6 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
         applyDarkModePreference();
         generateNewRound();
         addEventListeners();
+        updateMuteButton();
     }
 
     // --- EVENT LISTENERS ---
@@ -59,6 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("achievements-btn").addEventListener("click", showAchievements);
         document.getElementById("hint-btn").addEventListener("click", provideHint);
         document.getElementById("dark-mode-btn").addEventListener("click", toggleDarkMode);
+        document.getElementById("mute-btn").addEventListener("click", toggleMute);
     }
 
     function handleNumpadClick(e) {
@@ -216,6 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
             unlockedAchievements = new Set();
             totalProblemsSolved = { pemdas: 0 };
         }
+        isMuted = localStorage.getItem("muted") === "yes";
         updateStats();
     }
     
@@ -236,6 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function playRandomSound(soundArray) {
+        if (isMuted) return;
         if (!soundArray || soundArray.length === 0) {
             return;
         }
@@ -246,11 +251,11 @@ document.addEventListener("DOMContentLoaded", () => {
             s.currentTime = 0;
         });
 
-        // Use a clone of the audio element for playback
+        // Use new Audio(original.src) for reliable playback
         const original = soundArray[Math.floor(Math.random() * soundArray.length)];
-        const clone = original.cloneNode(); // Clone ensures no interference
-        clone.volume = 1.0;
-        clone.play().catch(error => {
+        const tempSound = new Audio(original.src);
+        tempSound.volume = 1.0;
+        tempSound.play().catch(error => {
             console.error("Audio playback failed. User may need to interact with the page first.", error);
         });
     }
@@ -309,6 +314,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (localStorage.getItem("darkMode") === "enabled") {
             document.body.classList.add("dark-mode");
         }
+    }
+
+    function toggleMute() {
+        isMuted = !isMuted;
+        updateMuteButton();
+        localStorage.setItem("muted", isMuted ? "yes" : "no");
+    }
+
+    function updateMuteButton() {
+        const muteBtn = document.getElementById("mute-btn");
+        muteBtn.textContent = isMuted ? "🔊 Unmute" : "🔇 Mute";
     }
 
     initializeGame();
