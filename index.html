@@ -2,94 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Fun Math Practice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Math Quest</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="no-transitions">
     <div class="container">
         <!-- Header -->
         <div class="header">
             <div class="header-top">
                 <div class="level-container">
-                    <span id="level">📈 Level: 1</span>
+                    <span id="level">Level 1</span>
+                    <div class="daily-note" id="daily" hidden></div>
                 </div>
-                <h1>🎯 Math Practice 🏆</h1>
+                <h1><span id="buddy" aria-hidden="true"></span> <span class="title-text">Math Quest</span></h1>
                 <div class="menu-container">
-                    <button class="menu-btn" id="menu-toggle-btn"><i class="fas fa-bars"></i></button>
+                    <button type="button" class="menu-btn" id="menu-toggle-btn" aria-label="Menu" aria-haspopup="true" aria-expanded="false" aria-controls="menu-dropdown">☰</button>
                     <div class="menu-dropdown" id="menu-dropdown">
-                        <button class="menu-item" id="achievements-btn">🏅 Achievements</button>
-                        <button class="menu-item" id="hint-btn">💡 Get a Hint</button>
-                        <button class="menu-item" id="restart-btn">🔄 Restart</button>
-                        <button class="menu-item" id="dark-mode-btn">🌙 Dark Mode</button>
-                        <button class="menu-item" id="mute-btn">🔇 Mute</button>
+                        <button type="button" class="menu-item" id="achievements-btn">🏅 Achievements</button>
+                        <button type="button" class="menu-item" id="shop-btn">🛍️ Shop</button>
+                        <button type="button" class="menu-item" id="hint-btn">💡 Get a Hint</button>
+                        <button type="button" class="menu-item" id="restart-btn">🔄 Restart</button>
+                        <button type="button" class="menu-item" id="dark-mode-btn">🌙 Dark Mode</button>
+                        <button type="button" class="menu-item" id="mute-btn">🔇 Mute</button>
                     </div>
                 </div>
             </div>
             <div class="stats">
-                <div id="timer">⏳ 0s</div>
-                <div id="streak">🔥 0</div>
-                <div id="score">🏆 0</div>
+                <div id="streak" aria-label="Answer streak">🔥 0</div>
+                <div id="score" aria-label="Score">⭐ 0</div>
+                <div id="coins" aria-label="Coins">💰 0</div>
+                <div id="timer" aria-label="Time this round">0s</div>
             </div>
-            <div class="operations-container" id="operations-container">
-                <button class="op-btn active" data-operation="addition">➕</button>
-                <button class="op-btn" data-operation="subtraction">➖</button>
-                <button class="op-btn" data-operation="multiplication">✖️</button>
-                <button class="op-btn" data-operation="division">➗</button>
-                <button class="op-btn" data-operation="pemdas">🧮</button>
+            <div class="operations-container" id="operations-container" role="group" aria-label="Operation">
+                <button type="button" class="op-btn active" data-operation="addition" aria-label="Addition" aria-pressed="true">+</button>
+                <button type="button" class="op-btn" data-operation="subtraction" aria-label="Subtraction" aria-pressed="false">−</button>
+                <button type="button" class="op-btn" data-operation="multiplication" aria-label="Multiplication" aria-pressed="false">×</button>
+                <button type="button" class="op-btn" data-operation="division" aria-label="Division" aria-pressed="false">÷</button>
+                <button type="button" class="op-btn" data-operation="pemdas" aria-label="Order of operations" aria-pressed="false">( )</button>
             </div>
         </div>
 
         <!-- Main Game Area -->
         <div class="game-area">
-            <div class="progress-bar-container">
+            <div class="progress-bar-container" role="progressbar" aria-label="Round progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <div class="progress-bar" id="progress-bar"></div>
             </div>
-            <div class="question-card" id="question-card">
+            <div class="question-card" id="question-card" aria-live="polite">
                 <span id="question-text"></span>
                 <div class="answer-display" id="answer-display"></div>
+                <div class="feedback-text" id="feedback-text"></div>
+                <div class="combo-badge" id="combo-badge" hidden></div>
             </div>
             <div class="input-area">
                 <div class="numpad-container" id="numpad">
-                    <button class="numpad-btn" data-key="1">1</button>
-                    <button class="numpad-btn" data-key="2">2</button>
-                    <button class="numpad-btn" data-key="3">3</button>
-                    <button class="numpad-btn" data-key="4">4</button>
-                    <button class="numpad-btn" data-key="5">5</button>
-                    <button class="numpad-btn" data-key="6">6</button>
-                    <button class="numpad-btn" data-key="7">7</button>
-                    <button class="numpad-btn" data-key="8">8</button>
-                    <button class="numpad-btn" data-key="9">9</button>
-                    <button class="numpad-btn function" data-key=".">.</button>
-                    <button class="numpad-btn" data-key="0">0</button>
-                    <button class="numpad-btn function" data-key="backspace"><i class="fas fa-backspace"></i></button>
+                    <button type="button" class="numpad-btn" data-key="1">1</button>
+                    <button type="button" class="numpad-btn" data-key="2">2</button>
+                    <button type="button" class="numpad-btn" data-key="3">3</button>
+                    <button type="button" class="numpad-btn" data-key="4">4</button>
+                    <button type="button" class="numpad-btn" data-key="5">5</button>
+                    <button type="button" class="numpad-btn" data-key="6">6</button>
+                    <button type="button" class="numpad-btn" data-key="7">7</button>
+                    <button type="button" class="numpad-btn" data-key="8">8</button>
+                    <button type="button" class="numpad-btn" data-key="9">9</button>
+                    <button type="button" class="numpad-btn function" data-key="." aria-label="Decimal point">.</button>
+                    <button type="button" class="numpad-btn" data-key="0">0</button>
+                    <button type="button" class="numpad-btn function" data-key="backspace" aria-label="Backspace">⌫</button>
                 </div>
-                <button class="submit-btn-main" id="submit-btn">Check</button>
+                <button type="button" class="submit-btn-main" id="submit-btn">Check</button>
             </div>
         </div>
     </div>
 
     <!-- Modal -->
     <div id="message-modal" class="modal-overlay">
-        <div class="modal-content">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-message">
             <h2 id="modal-title"></h2>
-            <p id="modal-message" style="white-space: pre-wrap;"></p>
+            <p id="modal-message"></p>
             <div id="modal-achievements-container"></div>
-            <button id="modal-ok-btn">OK</button>
+            <button type="button" id="modal-ok-btn">OK</button>
         </div>
     </div>
 
-    <!-- Sound Effects -->
-    <audio class="correct-sound" src="https://www.soundjay.com/button/beep-07.mp3"></audio>
-    <audio class="correct-sound" src="https://www.soundjay.com/human/applause-01.mp3"></audio>
-    <audio class="correct-sound" src="https://www.soundjay.com/human/cheering-2.mp3"></audio>
+    <div id="confetti" aria-hidden="true"></div>
+    <div id="toast-container" role="status" aria-live="polite"></div>
 
-    <audio class="wrong-sound" src="https://www.soundjay.com/button/beep-08.mp3"></audio>
-    <audio class="wrong-sound" src="https://www.soundjay.com/button/buzz-1.mp3"></audio>
-    <audio class="wrong-sound" src="https://www.soundjay.com/misc/fail-trombone-01.mp3"></audio>
-    
     <script src="script.js"></script>
 </body>
 </html>
